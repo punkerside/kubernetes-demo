@@ -5,7 +5,9 @@
 [![GitHub Tag](https://img.shields.io/github/tag-date/punkerside/eksctl-demo.svg?style=plastic)](https://github.com/punkerside/eksctl-demo/tags/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-<center><img src='docs/img/architecture.png'></center>
+<p align="center">
+  <img src="docs/img/architecture.png">
+</p>
 
 Kubernetes es un software de código abierto que le permite implementar y administrar aplicaciones en contenedores a escala. Kubernetes administra clústeres de instancias de informática de Amazon EC2 y ejecuta contenedores en ellas con procesos destinados a implementación, mantenimiento y escalado.
 
