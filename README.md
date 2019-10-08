@@ -1,4 +1,4 @@
-# Amazon Elastic Container Service for Kubernetes - EKS
+# Elastic Container Service for Kubernetes - Amazon EKS
 
 [![Build Status](https://travis-ci.org/punkerside/eksctl-demo.svg?branch=master)](https://travis-ci.org/punkerside/eksctl-demo)
 [![GitHub Issues](https://img.shields.io/github/issues/punkerside/eksctl-demo.svg)](https://github.com/punkerside/eksctl-demo/issues)
