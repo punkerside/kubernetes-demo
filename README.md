@@ -13,7 +13,6 @@ Kubernetes es un software de código abierto que le permite implementar y admini
 
 ## Prerequisite
 
-
 * [Instalar eksctl](https://eksctl.io/introduction/installation/)
 * [Instalar awscli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 
