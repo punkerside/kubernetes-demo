@@ -53,7 +53,9 @@ make create AWS_REGION=us-west-2 NODE_VER=1.13
 make addon-dashboard
 ```
 
-![IMAGE](docs/img/dashboard.png)
+<p align="center">
+  <img src="docs/img/dashboard.png">
+</p>
 
 ```bash
 # iniciar dashboard
@@ -68,14 +70,18 @@ http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kube
 make addon-metrics
 ```
 
-<center><img src='docs/img/autoscaling-pods.png'></center>
+<p align="center">
+  <img src="docs/img/autoscaling-pods.png">
+</p>
 
 * ### Instalando NGINX Ingress Controller
 
 ```bash
 make addon-ingress
 ```
-<center><img src='docs/img/ingress.png'></center>
+<p align="center">
+  <img src="docs/img/ingress.png">
+</p>
 
 * ### Instalando Cluster Autoscaler
 
@@ -83,7 +89,9 @@ make addon-ingress
 make addon-autoscaler
 ```
 
-<center><img src='docs/img/autoscaling-nodos.png'></center>
+<p align="center">
+  <img src="docs/img/autoscaling-nodos.png">
+</p>
 
 * ### Instalando GuestBook
 
