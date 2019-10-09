@@ -9,6 +9,6 @@ before_install:
   - sudo k8s/eksctl.sh
 
 install:
-  - echo -ne '\n' | ssh-keygen -t rsa
+  - echo | ssh-keygen -P ''
   - make create
   - make delete
