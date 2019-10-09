@@ -18,9 +18,9 @@ Kubernetes es un software de código abierto que le permite implementar y admini
 
 **NOTA:** Configurar las credenciales en el servicio [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/).
 
-Como depedencia se necesita una infraestructura de red base debidamente etiquetada para poder detectar automaticamente las redes privadas y publicas. Para esto podemos utilizar la siguiente plantilla de VPC:
+Como depedencia se necesita una infraestructura de red base debidamente etiquetada para poder detectar automaticamente las redes privadas y publicas. Para esto podemos utilizar la siguiente plantilla:
 
-* [Amazon Virtual Private Cloud](https://github.com/punkerside/terraform-aws-template-vpc)
+* [Amazon Virtual Private Cloud (VPC)](https://github.com/punkerside/terraform-aws-template-vpc)
 
 ## Recursos desplegados
 
