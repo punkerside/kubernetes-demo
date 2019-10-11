@@ -16,21 +16,28 @@ NODE_TYPE  = r5.large
 KUBECONFIG = $(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV)
 
 
-# creando cluster kubernetes
+# # creando cluster kubernetes
+# create:
+# 	@eksctl create cluster \
+# 	  --name $(OWNER)-$(ENV) \
+# 	  --region $(AWS_REGION) \
+# 	  --version $(NODE_VER) \
+# 	  --node-type $(NODE_TYPE) \
+# 	  --vpc-private-subnets $(AWS_PRI) \
+# 	  --vpc-public-subnets $(AWS_PUB) \
+# 	  --asg-access \
+# 	  --nodes $(NODE_DES) \
+# 	  --nodes-min $(NODE_MIN) \
+# 	  --nodes-max $(NODE_MAX) \
+# 	  --ssh-access=true \
+# 	  --auto-kubeconfig
+
 create:
-	@eksctl create cluster \
-	  --name $(OWNER)-$(ENV) \
-	  --region $(AWS_REGION) \
-	  --version $(NODE_VER) \
-	  --node-type $(NODE_TYPE) \
-	  --vpc-private-subnets $(AWS_PRI) \
-	  --vpc-public-subnets $(AWS_PUB) \
-	  --asg-access \
-	  --nodes $(NODE_DES) \
-	  --nodes-min $(NODE_MIN) \
-	  --nodes-max $(NODE_MAX) \
-	  --ssh-access=true \
-	  --auto-kubeconfig
+	export \
+	  NAME=$(OWNER)-$(ENV) \
+	  AWS_REGION=$(AWS_REGION) \
+	&& envsubst < k8s/cluster.yaml | eksctl create cluster -f -
+
 
 # instalando complemento dashboard
 addon-dashboard:

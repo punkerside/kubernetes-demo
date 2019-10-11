@@ -1,0 +1,36 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: $NAME
+  region: $AWS_REGION
+
+vpc:
+  subnets:
+    private:
+      b: { id: a }
+      b: { id: a }
+      b: { id: a }
+    public:
+      b: { id: a }
+      b: { id: a }
+      b: { id: a }
+
+nodeGroups:
+  - name: $NAME
+    minSize: 0
+    maxSize: 10
+    volumeSize: 60
+    privateNetworking: true
+    ssh:
+      allow: true
+    instancesDistribution:
+      instanceTypes: ["r5a.large", "m5a.large"]
+      onDemandPercentageAboveBaseCapacity: 25
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["audit", "authenticator", "controllerManager"]
