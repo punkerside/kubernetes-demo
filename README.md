@@ -1,8 +1,8 @@
 # Elastic Container Service for Kubernetes - Amazon EKS
 
-[![Build Status](https://travis-ci.org/punkerside/eksctl-demo.svg?branch=master)](https://travis-ci.org/punkerside/eksctl-demo)
-[![GitHub Issues](https://img.shields.io/github/issues/punkerside/eksctl-demo.svg)](https://github.com/punkerside/eksctl-demo/issues)
-[![GitHub Tag](https://img.shields.io/github/tag-date/punkerside/eksctl-demo.svg?style=plastic)](https://github.com/punkerside/eksctl-demo/tags/)
+[![Build Status](https://travis-ci.org/punkerside/kubernetes-demo.svg?branch=master)](https://travis-ci.org/punkerside/kubernetes-demo)
+[![GitHub Issues](https://img.shields.io/github/issues/punkerside/kubernetes-demo.svg)](https://github.com/punkerside/kubernetes-demo/issues)
+[![GitHub Tag](https://img.shields.io/github/tag-date/punkerside/kubernetes-demo.svg?style=plastic)](https://github.com/punkerside/kubernetes-demo/tags/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 <p align="center">
