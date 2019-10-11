@@ -16,28 +16,39 @@ NODE_TYPE  = r5.large
 KUBECONFIG = $(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV)
 
 
-# # creando cluster kubernetes
-# create:
-# 	@eksctl create cluster \
-# 	  --name $(OWNER)-$(ENV) \
-# 	  --region $(AWS_REGION) \
-# 	  --version $(NODE_VER) \
-# 	  --node-type $(NODE_TYPE) \
-# 	  --vpc-private-subnets $(AWS_PRI) \
-# 	  --vpc-public-subnets $(AWS_PUB) \
-# 	  --asg-access \
-# 	  --nodes $(NODE_DES) \
-# 	  --nodes-min $(NODE_MIN) \
-# 	  --nodes-max $(NODE_MAX) \
-# 	  --ssh-access=true \
-# 	  --auto-kubeconfig
+# capturando ids de subnets y zonas de disponibilidad
+getSubnet:
+	$(eval AWS_PRI_SB_A = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pri --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$1}' | sed -n 1p))
+	$(eval AWS_PRI_AZ_A = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pri --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$2}' | sed -n 1p))
+	$(eval AWS_PRI_SB_B = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pri --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$1}' | sed -n 2p))
+	$(eval AWS_PRI_AZ_B = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pri --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$2}' | sed -n 2p))
+	$(eval AWS_PRI_SB_C = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pri --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$1}' | sed -n 3p))
+	$(eval AWS_PRI_AZ_C = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pri --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$2}' | sed -n 3p))
+	$(eval AWS_PUB_SB_A = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pub --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$1}' | sed -n 1p))
+	$(eval AWS_PUB_AZ_A = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pub --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$2}' | sed -n 1p))
+	$(eval AWS_PUB_SB_B = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pub --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$1}' | sed -n 2p))
+	$(eval AWS_PUB_AZ_B = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pub --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$2}' | sed -n 2p))
+	$(eval AWS_PUB_SB_C = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pub --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$1}' | sed -n 3p))
+	$(eval AWS_PUB_AZ_C = $(shell aws --region $(AWS_REGION) ec2 describe-subnets --filters Name=tag:Tier,Values=pub --query "Subnets[].[SubnetId, AvailabilityZone]" --output text | awk '{print $$2}' | sed -n 3p))
 
-create:
+# creando cluster kubernetes
+create: getSubnet
 	export \
 	  NAME=$(OWNER)-$(ENV) \
 	  AWS_REGION=$(AWS_REGION) \
+	  AWS_PRI_SB_A=$(AWS_PRI_SB_A) \
+	  AWS_PRI_SB_B=$(AWS_PRI_SB_B) \
+	  AWS_PRI_SB_C=$(AWS_PRI_SB_C) \
+	  AWS_PRI_AZ_A=$(AWS_PRI_AZ_A) \
+	  AWS_PRI_AZ_B=$(AWS_PRI_AZ_B) \
+	  AWS_PRI_AZ_C=$(AWS_PRI_AZ_C) \
+	  AWS_PUB_SB_A=$(AWS_PUB_SB_A) \
+	  AWS_PUB_SB_B=$(AWS_PUB_SB_B) \
+	  AWS_PUB_SB_C=$(AWS_PUB_SB_C) \
+	  AWS_PUB_AZ_A=$(AWS_PUB_AZ_A) \
+	  AWS_PUB_AZ_B=$(AWS_PUB_AZ_B) \
+	  AWS_PUB_AZ_C=$(AWS_PUB_AZ_C) \
 	&& envsubst < k8s/cluster.yaml | eksctl create cluster -f -
-
 
 # instalando complemento dashboard
 addon-dashboard:

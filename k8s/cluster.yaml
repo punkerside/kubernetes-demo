@@ -8,18 +8,19 @@ metadata:
 vpc:
   subnets:
     private:
-      b: { id: a }
-      b: { id: a }
-      b: { id: a }
+      $AWS_PRI_AZ_A: { id: $AWS_PRI_SB_A }
+      $AWS_PRI_AZ_B: { id: $AWS_PRI_SB_B }
+      $AWS_PRI_AZ_C: { id: $AWS_PRI_SB_C }
     public:
-      b: { id: a }
-      b: { id: a }
-      b: { id: a }
+      $AWS_PUB_AZ_A: { id: $AWS_PUB_SB_A }
+      $AWS_PUB_AZ_B: { id: $AWS_PUB_SB_B }
+      $AWS_PUB_AZ_C: { id: $AWS_PUB_SB_C }
 
 nodeGroups:
   - name: $NAME
     minSize: 0
     maxSize: 10
+    desiredCapacity: 2
     volumeSize: 60
     privateNetworking: true
     ssh:
