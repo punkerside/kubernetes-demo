@@ -26,8 +26,6 @@ create:
 	  --nodes-max $(NODE_MAX) \
 	  --asg-access \
 	  --auto-kubeconfig
-	@cat $(HOME)/.kube/config > $(HOME)/.kube/config.save && rm -rf $(HOME)/.kube/config
-	@ln -s $(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV) $(HOME)/.kube/config
 
 # eliminando cluster kubernetes
 delete:
