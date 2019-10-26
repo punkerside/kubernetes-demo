@@ -147,7 +147,7 @@ spec:
             - --stderrthreshold=info
             - --cloud-provider=aws
             - --skip-nodes-with-local-storage=false
-            - --nodes=1:10:$AWS_AUTOSCALING_GROUP
+            - --nodes=1:10:$AWS_GROUP
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs/ca-certificates.crt
