@@ -5,11 +5,13 @@
 [![GitHub Tag](https://img.shields.io/github/tag-date/punkerside/kubernetes-demo.svg?style=plastic)](https://github.com/punkerside/kubernetes-demo/tags/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+Kubernetes es un software de código abierto que le permite implementar y administrar aplicaciones en contenedores a escala.
+
+Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y ejecuta contenedores en ellas con procesos destinados a implementación, mantenimiento y escalado.
+
 <p align="center">
   <img src="docs/img/architecture.png">
 </p>
-
-Kubernetes es un software de código abierto que le permite implementar y administrar aplicaciones en contenedores a escala. Kubernetes administra clústeres de instancias de informática de Amazon EC2 y ejecuta contenedores en ellas con procesos destinados a implementación, mantenimiento y escalado.
 
 ## Prerequisite
 
@@ -18,14 +20,11 @@ Kubernetes es un software de código abierto que le permite implementar y admini
 
 **NOTA:** Configurar las credenciales en el servicio [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/).
 
-Como depedencia se necesita una infraestructura de red base debidamente etiquetada para poder detectar automaticamente las redes privadas y publicas. Para esto podemos utilizar la siguiente plantilla:
-
-* [Amazon Virtual Private Cloud (VPC)](https://github.com/punkerside/terraform-aws-template-vpc)
-
 ## Recursos desplegados
 
 ### Amazon AWS
 
+* Virtual Private Cloud (VPC)
 * Elastic Container Service for Kubernetes (EKS)
 * EC2 Auto Scaling
 * Elastic Load Balancing (ELB)
@@ -38,14 +37,14 @@ Como depedencia se necesita una infraestructura de red base debidamente etiqueta
 * Metrics Server
 * Cluster Autoscaler (CA)
 * NGINX Ingress Controller
-* GuestBook (app demo)
+* GuestBook
 
 ## Despliegue
 
 * ### Cluster y nodos Kubernetes (EKS)
 
 ```bash
-make create AWS_REGION=us-west-2 NODE_VER=1.13
+make create AWS_REGION=us-east-1
 ```
 
 * ### Instalando Web UI (Dashboard)
@@ -54,16 +53,23 @@ make create AWS_REGION=us-west-2 NODE_VER=1.13
 make addon-dashboard
 ```
 
-<p align="center">
-  <img src="docs/img/dashboard.png">
-</p>
+Iniciando proxy:
 
 ```bash
-# iniciar dashboard
 kubectl proxy
 ```
 
-http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
+Para capturar el token de acceso Dashboard:
+
+```bash
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:"
+```
+
+<a href="http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login" target="_blank">http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login</a>
+
+<p align="center">
+  <img src="docs/img/dashboard.png">
+</p>
 
 * ### Instalando Metrics Server
 
@@ -75,14 +81,11 @@ make addon-metrics
   <img src="docs/img/autoscaling-pods.png">
 </p>
 
-* ### Instalando NGINX Ingress Controller
+Para revisar los registros del escalado:
 
 ```bash
-make addon-ingress
+kubectl get hpa
 ```
-<p align="center">
-  <img src="docs/img/ingress.png">
-</p>
 
 * ### Instalando Cluster Autoscaler
 
@@ -94,33 +97,76 @@ make addon-autoscaler
   <img src="docs/img/autoscaling-nodos.png">
 </p>
 
+Para revisar los registros del escalado:
+
+```bash
+kubectl logs -f deployment/cluster-autoscaler -n kube-system
+```
+
+* ### Desplegando contenedor de estres
+
+```bash
+make container-stress
+```
+
+Utilizando un contenedor para enviar consultas **wget** dentro del cluster:
+
+```bash
+TIME=$(date "+%H%M%S") && kubectl run -i --tty load-generator-${TIME} --image=busybox /bin/sh
+```
+
+Dentro del contenedor iniciamos las consultas de saturacion:
+
+```bash
+while true; do wget -q -O- http://container-stress.default.svc.cluster.local; done
+```
+
+* ### Instalando NGINX Ingress Controller
+
+```bash
+make ingress-controller
+```
+<p align="center">
+  <img src="docs/img/ingress.png">
+</p>
+
 * ### Instalando GuestBook
 
 ```bash
 make deploy-guestbook
 ```
 
-http://guestbook.kubernetes.io
+Capturar DNS del balanceador asociado al **NGINX Ingress Controller**:
 
+```bash
+kubectl get svc --namespace=ingress-nginx ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+```
 
 ## Variables
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 | OWNER | Nombre del propietario | string | punkerside | no |
-| PROJECT | Nombre del proyecto | string | eks | no |
-| ENV | Nombre del entorno | string | demo | no |
+| ENV | Nombre del entorno | string | dev | no |
 | AWS_REGION | Region de AWS | string | `us-east-1` | no |
-| AWS_DOMAIN | Dominio de DNS | string | `punkerside.com` | no |
-| NODE_VER | Version de Kubernetes | string | `1.14` | no |
+| KUBE_VER | Version de Kubernetes | string | `1.14` | no |
 | NODE_DES | Numero de nodos | string | `2` | no |
 | NODE_MIN | Numero minimo de nodos para el escalamiento| string | `1` | no |
 | NODE_MAX | Numero minimo de nodos para el escalamiento| string | `10` | no |
+| NODE_TYPE | Tipo de instancia de los nodos | string | `t3a.medium` | no |
 
 ## Eliminar
 
-Para eliminar la infraestructura creada y archivos temporales:
+Para eliminar la infraestructura creada:
 
 ```bash
 make delete
 ```
+
+## Authors
+
+[Ivan Echegaray](https://github.com/punkerside/).
+
+## License
+
+Apache 2 Licensed. See LICENSE for full details.
