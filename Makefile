@@ -26,8 +26,8 @@ create:
 	  --nodes-max $(NODE_MAX) \
 	  --asg-access \
 	  --auto-kubeconfig
-	cat $(HOME)/.kube/config > $(HOME)/.kube/config.save && rm -rf $(HOME)/.kube/config
-	ln -s $(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV) $(HOME)/.kube/config
+	@cat $(HOME)/.kube/config > $(HOME)/.kube/config.save && rm -rf $(HOME)/.kube/config
+	@ln -s $(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV) $(HOME)/.kube/config
 
 # eliminando cluster kubernetes
 delete:
@@ -42,7 +42,7 @@ addon-dashboard:
 
 # instalando complemento metrics server
 addon-metrics:
-	@mkdir -p tmp/ && rm -rf tmp/metrics-server/ && cd tmp/ && git clone https://github.com/kubernetes-incubator/metrics-server.git
+	@mkdir -p tmp/ && rm -rf tmp/metrics-server/ && cd tmp/ && git clone https://github.com/kubernetes-incubator/metrics-server.git > /dev/null 2>&1
 	@kubectl apply -f tmp/metrics-server/deploy/1.8+/
 
 # instalando complemento cluster autoscaler
@@ -51,8 +51,8 @@ addon-autoscaler:
 
 # desplegando contenedor de estres
 container-stress:
-	kubectl run container-stress --image=punkerside/container-stress --requests=cpu=200m --limits=cpu=500m --expose --port=80
-	kubectl autoscale deployment container-stress --cpu-percent=15 --min=1 --max=180
+	@kubectl run container-stress --image=punkerside/container-stress --requests=cpu=200m --limits=cpu=500m --expose --port=80
+	@kubectl autoscale deployment container-stress --cpu-percent=15 --min=1 --max=180
 
 # instalando nginx ingress controller 
 ingress-controller:
