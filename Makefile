@@ -88,6 +88,7 @@ create:
 	  --asg-access \
 	  --auto-kubeconfig
 <<<<<<< HEAD
+<<<<<<< HEAD
 	cat $(HOME)/.kube/config > $(HOME)/.kube/config.save && rm -rf $(HOME)/.kube/config
 	ln -s $(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV) $(HOME)/.kube/config
 >>>>>>> 56d23e3 (fix stress)
@@ -95,6 +96,8 @@ create:
 	@cat $(HOME)/.kube/config > $(HOME)/.kube/config.save && rm -rf $(HOME)/.kube/config
 	@ln -s $(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV) $(HOME)/.kube/config
 >>>>>>> e029d55 (fix readme)
+=======
+>>>>>>> 38e6e34 (fix default)
 
 # eliminando cluster kubernetes
 delete:

@@ -47,19 +47,26 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 make create AWS_REGION=us-east-1
 ```
 
+Para habilitar el acceso por defecto desde el comando **kubectl**:
+
+
+```bash
+ln -s ~/.kube/eksctl/clusters/$CLUSTER_NAME ~/.kube/config
+```
+
 * ### Instalando Web UI (Dashboard)
 
 ```bash
 make addon-dashboard
 ```
 
-Iniciando proxy:
+Iniciando **proxy**:
 
 ```bash
 kubectl proxy
 ```
 
-Para capturar el token de acceso Dashboard:
+Para capturar el **token** de acceso Dashboard:
 
 ```bash
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:"
@@ -165,7 +172,7 @@ make delete
 
 ## Authors
 
-[Ivan Echegaray](https://github.com/punkerside/).
+[Ivan Echegaray Avendaño](https://github.com/punkerside/)
 
 ## License
 
