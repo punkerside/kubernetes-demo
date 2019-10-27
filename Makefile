@@ -1,6 +1,6 @@
 # variables globales
 OWNER = punkerside
-ENV   = demo
+ENV   = dev
 
 # variables de proveedor cloud
 AWS_REGION = us-east-1
