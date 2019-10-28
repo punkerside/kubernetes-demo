@@ -78,6 +78,12 @@ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | gre
   <img src="docs/img/dashboard.png">
 </p>
 
+* ### Instalando CloudWatch Container Insights
+
+```bash
+make addon-cloudwatch AWS_REGION=us-east-1
+```
+
 * ### Instalando Metrics Server
 
 ```bash
@@ -125,7 +131,7 @@ TIME=$(date "+%H%M%S") && kubectl run -i --tty load-generator-${TIME} --image=bu
 Dentro del contenedor iniciamos las consultas de saturacion:
 
 ```bash
-while true; do wget -q -O- http://container-stress.default.svc.cluster.local; done
+while true; do wget -q -O- http://stress.default.svc.cluster.local; done
 ```
 
 * ### Instalando NGINX Ingress Controller
@@ -157,10 +163,9 @@ kubectl get svc --namespace=ingress-nginx ingress-nginx -o jsonpath='{.status.lo
 | ENV | Nombre del entorno | string | dev | no |
 | AWS_REGION | Region de AWS | string | `us-east-1` | no |
 | KUBE_VER | Version de Kubernetes | string | `1.14` | no |
-| NODE_DES | Numero de nodos | string | `2` | no |
 | NODE_MIN | Numero minimo de nodos para el escalamiento| string | `1` | no |
 | NODE_MAX | Numero minimo de nodos para el escalamiento| string | `10` | no |
-| NODE_TYPE | Tipo de instancia de los nodos | string | `t3a.medium` | no |
+| NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.large", "m5a.large", "t3a.medium"]` | no |
 
 ## Eliminar
 
