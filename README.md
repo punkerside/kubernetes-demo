@@ -163,9 +163,9 @@ kubectl get svc --namespace=ingress-nginx ingress-nginx -o jsonpath='{.status.lo
 | ENV | Nombre del entorno | string | dev | no |
 | AWS_REGION | Region de AWS | string | `us-east-1` | no |
 | KUBE_VER | Version de Kubernetes | string | `1.14` | no |
-| NODE_MIN | Numero minimo de nodos para el escalamiento| string | `1` | no |
-| NODE_MAX | Numero minimo de nodos para el escalamiento| string | `10` | no |
-| NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.large", "m5a.large", "t3a.medium"]` | no |
+| NODE_MIN | Numero minimo de nodos | string | `1` | no |
+| NODE_MAX | Numero maximo de nodos | string | `10` | no |
+| NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.large", "m5a.large"]` | no |
 
 ## Eliminar
 
