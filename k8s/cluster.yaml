@@ -4,6 +4,7 @@ kind: ClusterConfig
 metadata:
   name: $NAME
   region: $AWS_REGION
+<<<<<<< HEAD
 
 vpc:
   subnets:
@@ -26,10 +27,30 @@ nodeGroups:
       allow: true
     instancesDistribution:
       instanceTypes: ["r5a.large", "m5a.large"]
+=======
+  version: "$KUBE_VER"
+
+nodeGroups:
+  - name: $NAME
+    minSize: $NODE_MIN
+    maxSize: $NODE_MAX
+    desiredCapacity: 1
+    volumeSize: 60
+    privateNetworking: true
+    instancesDistribution:
+      instanceTypes: $NODE_TYPE
+>>>>>>> 1a914d3 (varios cambios)
       onDemandPercentageAboveBaseCapacity: 25
     iam:
       withAddonPolicies:
         autoScaler: true
+<<<<<<< HEAD
+=======
+        cloudWatch: true
+        ebs: true
+
+availabilityZones: $AWS_ZONES
+>>>>>>> 1a914d3 (varios cambios)
 
 cloudWatch:
   clusterLogging:
