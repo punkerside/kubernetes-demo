@@ -1,0 +1,13 @@
+{
+    "Changes": [{
+               "Action": "UPSERT",
+               "ResourceRecordSet": {
+                           "Name": "grafana.punkerside.com",
+                           "Type": "A",
+                           "AliasTarget":{
+                            "HostedZoneId": "ALB_ZONE",
+                            "DNSName": "ALB_DNS",
+                                   "EvaluateTargetHealth": false
+                             }}
+                         }]
+}

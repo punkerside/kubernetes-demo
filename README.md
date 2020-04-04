@@ -41,6 +41,21 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 * Kibana
 * GuestBook
 
+## Variables
+
+| Name | Description | Type | Default | Required |
+|------|-------------|:----:|:-----:|:-----:|
+| PROJECT | Nombre del proyecto | string | kubernetes | no |
+| ENV | Nombre del entorno | string | dev | no |
+| DOMAIN | Nombre del dominio | string | `punkerside.com` | no |
+| AWS_REGION | Region de AWS | string | `us-east-1` | no |
+| K8S_CLUS_VERS | Version de Kubernetes | string | `1.15` | no |
+| K8S_NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.xlarge", "m5a.xlarge", "t3a.medium"]` | no |
+| K8S_NODE_SIZE | Numero de nodos | string | `3` | no |
+| K8S_NODE_MINI | Numero minimo de nodos | string | `1` | no |
+| K8S_NODE_MAXI | Numero maximo de nodos | string | `6` | no |
+
+
 ## Despliegue
 
 1\. Crear cluster y nodos
@@ -77,9 +92,14 @@ Para capturar el token: ``kubectl -n kube-system describe secret $(kubectl -n ku
 make autoscaler
 ```
 
+Para iniciar el escalado de nodos:
+
+```bash
+kubectl create deployment autoscaler-demo --image=nginx
+kubectl scale deployment autoscaler-demo --replicas=100
+```
+
 Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
-
-
 
 5\. Iniciando NGINX Ingress Controller:
 
@@ -109,6 +129,8 @@ kubectl prometheus
 kubectl grafana
 ```
 
+Para revisar las metricas: ``http://grafana.punkerside.com``
+
 9\. Instalando Elasticsearch
 
 ```bash
@@ -127,25 +149,15 @@ kubectl fluent-bit
 kubectl kibana
 ```
 
+Para revisar las registros: ``http://kibana.punkerside.com``
+
 12\. Desplegando GuestBook
 
 ```bash
 kubectl guestbook-go
 ```
 
-## Variables
-
-| Name | Description | Type | Default | Required |
-|------|-------------|:----:|:-----:|:-----:|
-| PROJECT | Nombre del proyecto | string | kubernetes | no |
-| ENV | Nombre del entorno | string | demo | no |
-| DOMAIN | Nombre del dominio | string | `punkerside.com` | no |
-| AWS_REGION | Region de AWS | string | `us-east-1` | no |
-| K8S_CLUS_VERS | Version de Kubernetes | string | `1.15` | no |
-| K8S_NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.xlarge", "m5a.xlarge", "t3a.medium"]` | no |
-| K8S_NODE_SIZE | Numero de nodos | string | `3` | no |
-| K8S_NODE_MINI | Numero minimo de nodos | string | `1` | no |
-| K8S_NODE_MAXI | Numero maximo de nodos | string | `6` | no |
+Para visitar el GuestBook: ``http://guestbook.punkerside.com``
 
 ## Eliminar
 
