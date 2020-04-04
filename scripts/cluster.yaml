@@ -4,17 +4,17 @@ kind: ClusterConfig
 metadata:
   name: $NAME
   region: $AWS_REGION
-  version: "$KUBE_VER"
+  version: "$K8S_CLUS_VERS"
 
 nodeGroups:
   - name: $NAME
-    minSize: $NODE_MIN
-    maxSize: $NODE_MAX
-    desiredCapacity: 1
+    minSize: $K8S_NODE_MINI
+    maxSize: $K8S_NODE_MAXI
+    desiredCapacity: $K8S_NODE_SIZE
     volumeSize: 60
     privateNetworking: true
     instancesDistribution:
-      instanceTypes: $NODE_TYPE
+      instanceTypes: $K8S_NODE_TYPE
       onDemandPercentageAboveBaseCapacity: 25
     iam:
       withAddonPolicies:

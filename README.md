@@ -18,18 +18,15 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 * [Instalar eksctl](https://eksctl.io/introduction/installation/)
 * [Instalar awscli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 
-**NOTA:** Configurar las credenciales en el servicio [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/configure/).
-
 ## Recursos desplegados
 
 ### Amazon AWS
 
 * Virtual Private Cloud (VPC)
+* Identity and Access Management (IAM)
 * Elastic Container Service for Kubernetes (EKS)
 * EC2 Auto Scaling
 * Elastic Load Balancing (ELB)
-* Identity and Access Management (IAM)
-* CloudWatch Container Insights
 
 ### Kubernetes
 
@@ -37,40 +34,36 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 * Metrics Server
 * Cluster Autoscaler (CA)
 * NGINX Ingress Controller
+* Prometheus
+* Grafana
+* Fluent-bit
+* ElasticSearch
+* Kibana
 * GuestBook
 
 ## Despliegue
 
-* ### Cluster y nodos Kubernetes (EKS)
+1\. Crear cluster y nodos
 
 ```bash
 make create AWS_REGION=us-east-1
 ```
 
-Para habilitar el acceso por defecto desde el comando **kubectl**:
-
-
-```bash
-ln -s ~/.kube/eksctl/clusters/$CLUSTER_NAME ~/.kube/config
-```
-
-* ### Instalando Web UI (Dashboard)
+2\. Instalar Metrics Server
 
 ```bash
-make addon-dashboard
+make metrics
 ```
 
-Iniciando **proxy**:
+Para revisar los registros del escalado de pods: ``kubectl get hpa``
+
+3\. Instalando Web UI (Dashboard)
 
 ```bash
-kubectl proxy
+make dashboard
 ```
 
-Para capturar el **token** de acceso Dashboard:
-
-```bash
-kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:"
-```
+Para capturar el token: ``kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'``
 
 <a href="http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login" target="_blank">http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login</a>
 
@@ -78,107 +71,88 @@ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | gre
   <img src="docs/img/dashboard.png">
 </p>
 
-* ### Instalando CloudWatch Container Insights
+4\. Instalando Cluster Autoscaler
 
 ```bash
-make addon-cloudwatch AWS_REGION=us-east-1
+make autoscaler
 ```
 
-* ### Instalando Metrics Server
+Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
+
+
+
+5\. Iniciando NGINX Ingress Controller:
 
 ```bash
-make addon-metrics
+kubectl ingress
 ```
 
-<p align="center">
-  <img src="docs/img/autoscaling-pods.png">
-</p>
-
-Para revisar los registros del escalado:
-
-```bash
-kubectl get hpa
-```
-
-* ### Instalando Cluster Autoscaler
-
-```bash
-make addon-autoscaler
-```
-
-<p align="center">
-  <img src="docs/img/autoscaling-nodos.png">
-</p>
-
-Para revisar los registros del escalado:
-
-```bash
-kubectl logs -f deployment/cluster-autoscaler -n kube-system
-```
-
-* ### Desplegando contenedor de estres
-
-```bash
-make container-stress
-```
-
-Utilizando un contenedor para enviar consultas **wget** dentro del cluster:
-
-```bash
-TIME=$(date "+%H%M%S") && kubectl run -i --tty load-generator-${TIME} --image=busybox /bin/sh
-```
-
-Dentro del contenedor iniciamos las consultas de saturacion:
-
-```bash
-while true; do wget -q -O- http://stress.default.svc.cluster.local; done
-```
-
-* ### Instalando NGINX Ingress Controller
-
-```bash
-make ingress-controller
-```
 <p align="center">
   <img src="docs/img/ingress.png">
 </p>
 
-* ### Instalando GuestBook
+6\. Instalando Helm
 
 ```bash
-make deploy-guestbook
+kubectl helm
 ```
 
-Capturar DNS del balanceador asociado al **NGINX Ingress Controller**:
+7\. Instalando Prometheus
 
 ```bash
-kubectl get svc --namespace=ingress-nginx ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+kubectl prometheus
+```
+
+8\. Instalando Grafana
+
+```bash
+kubectl grafana
+```
+
+9\. Instalando Elasticsearch
+
+```bash
+kubectl elasticsearch
+```
+
+10\. Instalando Fluent-Bit
+
+```bash
+kubectl fluent-bit
+```
+
+11\. Instalando Kibana
+
+```bash
+kubectl kibana
+```
+
+12\. Desplegando GuestBook
+
+```bash
+kubectl guestbook-go
 ```
 
 ## Variables
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
-| OWNER | Nombre del propietario | string | punkerside | no |
-| ENV | Nombre del entorno | string | dev | no |
+| PROJECT | Nombre del proyecto | string | kubernetes | no |
+| ENV | Nombre del entorno | string | demo | no |
+| DOMAIN | Nombre del dominio | string | `punkerside.com` | no |
 | AWS_REGION | Region de AWS | string | `us-east-1` | no |
-| KUBE_VER | Version de Kubernetes | string | `1.14` | no |
-| NODE_MIN | Numero minimo de nodos | string | `1` | no |
-| NODE_MAX | Numero maximo de nodos | string | `10` | no |
-| NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.large", "m5a.large"]` | no |
+| K8S_CLUS_VERS | Version de Kubernetes | string | `1.15` | no |
+| K8S_NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.xlarge", "m5a.xlarge", "t3a.medium"]` | no |
+| K8S_NODE_SIZE | Numero de nodos | string | `3` | no |
+| K8S_NODE_MINI | Numero minimo de nodos | string | `1` | no |
+| K8S_NODE_MAXI | Numero maximo de nodos | string | `6` | no |
 
 ## Eliminar
-
-Para eliminar la infraestructura creada:
 
 ```bash
 make delete
 ```
 
-## Authors
+## Autor
 
 [Ivan Echegaray Avendaño](https://github.com/punkerside/)
-
-## License
-
-Apache 2 Licensed. See LICENSE for full details.

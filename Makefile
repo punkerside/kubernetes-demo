@@ -1,72 +1,97 @@
-# variables globales
-OWNER = punkerside
-ENV   = dev
-
-# variables de proveedor cloud
+PROJECT    = kubernetes
+ENV        = demo
+DOMAIN     = punkerside.com
 AWS_REGION = us-east-1
 AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json)]')'
-AWS_GROUP  = $(shell aws --region $(AWS_REGION) autoscaling describe-auto-scaling-groups | grep $(OWNER)-$(ENV) | grep AutoScalingGroupName | cut -d '"' -f 4)
 
-# variables de cluster kubernetes
-KUBE_VER   = 1.14
-NODE_MIN   = 1
-NODE_MAX   = 10
-NODE_TYPE  = '["r5a.large", "m5a.large", "t3a.medium"]'
-KUBECONFIG = "$(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV)"
+K8S_CLUS_VERS = 1.15
+K8S_NODE_TYPE = '["r5a.xlarge", "m5a.xlarge", "t3a.medium"]'
+K8S_NODE_SIZE = 3
+K8S_NODE_MINI = 1
+K8S_NODE_MAXI = 6
+K8S_NAMESPACE = monitoring
 
-# creando cluster kubernetes
 create:
 	export \
-	  NAME=$(OWNER)-$(ENV) \
+	  NAME=$(PROJECT)-$(ENV) \
 	  AWS_REGION=$(AWS_REGION) \
 	  AWS_ZONES=$(AWS_ZONES) \
-	  KUBE_VER=$(KUBE_VER) \
-	  NODE_TYPE=$(NODE_TYPE) \
-	  NODE_MIN=$(NODE_MIN) \
-	  NODE_MAX=$(NODE_MAX) \
-	&& envsubst < k8s/cluster.yaml | eksctl create cluster --auto-kubeconfig -f -
+	  K8S_CLUS_VERS=$(K8S_CLUS_VERS) \
+	  K8S_NODE_TYPE=$(K8S_NODE_TYPE) \
+	  K8S_NODE_SIZE=$(K8S_NODE_SIZE) \
+	  K8S_NODE_MINI=$(K8S_NODE_MINI) \
+	  K8S_NODE_MAXI=$(K8S_NODE_MAXI) \
+	&& envsubst < scripts/cluster.yaml | eksctl create cluster --auto-kubeconfig -f -
+	aws eks --region $(AWS_REGION) update-kubeconfig --name $(PROJECT)-$(ENV)
 
-# eliminando cluster kubernetes
 delete:
 	eksctl delete cluster \
-	  --name $(OWNER)-$(ENV) \
-	  --region=$(AWS_REGION)
+	  --name $(PROJECT)-$(ENV) \
+	  --region $(AWS_REGION)
+metrics:
+	$(eval DOWNLOAD_URL = $(shell curl -Ls "https://api.github.com/repos/kubernetes-sigs/metrics-server/releases/latest" | jq -r .tarball_url))
+	$(eval DOWNLOAD_VERSION = $(shell grep -o '[^/v]*$$' <<< $(DOWNLOAD_URL)))
+	@rm -rf metrics-server-$(DOWNLOAD_VERSION) metrics-server-$(DOWNLOAD_VERSION).tar.gz
+	curl -Ls $(DOWNLOAD_URL) -o metrics-server-$(DOWNLOAD_VERSION).tar.gz
+	@mkdir metrics-server-$(DOWNLOAD_VERSION)
+	tar -xzf metrics-server-$(DOWNLOAD_VERSION).tar.gz --directory metrics-server-$(DOWNLOAD_VERSION) --strip-components 1
+	kubectl apply -f metrics-server-$(DOWNLOAD_VERSION)/deploy/1.8+/
 
-# instalando complemento dashboard
-addon-dashboard:
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta1/aio/deploy/recommended.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f k8s/eks-admin-service-account.yaml
+dashboard:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+	kubectl apply -f scripts/eks-admin-service-account.yaml
 
-# instalando complemento cloudwatch
-addon-cloudwatch:
-	curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/master/k8s-yaml-templates/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/$(OWNER)-$(ENV)/;s/{{region_name}}/$(AWS_REGION)/" | kubectl --kubeconfig $(KUBECONFIG) apply -f -
+autoscaler:
+	export CLUSTER_NAME=$(PROJECT)-$(ENV) && envsubst < scripts/cluster-autoscaler-autodiscover.yaml | kubectl apply -f -
 
-# instalando complemento metrics server
-addon-metrics:
-	@mkdir -p tmp/ && rm -rf tmp/metrics-server/ && cd tmp/ && git clone https://github.com/kubernetes-incubator/metrics-server.git > /dev/null 2>&1
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f tmp/metrics-server/deploy/1.8+/
+ingress:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml
+	kubectl apply -f scripts/service-l7.yaml
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/aws/patch-configmap-l7.yaml
 
-# instalando complemento cluster autoscaler
-addon-autoscaler:
-	@export AWS_GROUP=$(AWS_GROUP) && envsubst < k8s/cluster-autoscaler-autodiscover.yaml | kubectl --kubeconfig $(KUBECONFIG) apply -f -
+helm:
+	kubectl create namespace $(K8S_NAMESPACE)
+	helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+	helm repo add elastic https://helm.elastic.co
 
-# desplegando contenedor de estres
-container-stress:
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f stress/service.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f stress/hpa.yaml
+prometheus:
+	helm install prometheus stable/prometheus \
+	  --namespace $(K8S_NAMESPACE) \
+	  --set alertmanager.persistentVolume.storageClass="gp2",server.persistentVolume.storageClass="gp2",server.ingress.enabled="true",server.ingress.hosts[0]="prometheus.$(DOMAIN)"
 
-# instalando nginx ingress controller 
-ingress-controller:
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f k8s/service-l7.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/aws/patch-configmap-l7.yaml
+grafana:
+	helm install grafana stable/grafana \
+	  -f scripts/grafana.yml \
+	  --namespace $(K8S_NAMESPACE) \
+	  --set=ingress.enabled=True,ingress.hosts={grafana.$(DOMAIN)} \
+	  --set rbac.create=true
+	kubectl get secret -n $(K8S_NAMESPACE) grafana -o jsonpath="{.data.admin-password}" | base64 --decode
 
-# desplegando guestbook
-deploy-guestbook:
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-service.json
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-controller.json
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-service.json
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/guestbook-controller.json
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f guestbook/service.json
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f guestbook/ingress.yaml
+elasticsearch:
+	helm install elasticsearch elastic/elasticsearch --namespace $(K8S_NAMESPACE) \
+	  --set persistence.enabled="false"
+
+fluent-bit:
+	helm install fluent-bit stable/fluent-bit \
+	  --namespace $(K8S_NAMESPACE) \
+	  --set backend.type=es \
+	  --set input.systemd.enabled=true \
+	  --set backend.es.host=elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local
+
+kibana:
+	helm install kibana elastic/kibana --namespace $(K8S_NAMESPACE) \
+	  --set elasticsearchHosts=http://elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local:9200,ingress.enabled=true,ingress.hosts[0]="kibana.$(DOMAIN)"
+
+guestbook-go:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-service.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-controller.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-service.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/guestbook-controller.json
+	kubectl apply -f guestbook/guestbook-service.json
+	export DOMAIN=$(DOMAIN) && envsubst < guestbook/guestbook-ingress.yaml | kubectl apply -f -
+
+dns:
+	$(eval LB_DNS = $(shell kubectl get services -o wide --all-namespaces | grep ingress-nginx | awk '{print $$5}'))
+	$(eval LB_IP = $(shell dig +short $(LB_DNS) | head -1))
+	@echo "$(LB_IP)	prometheus.$(DOMAIN) grafana.$(DOMAIN) kibana.$(DOMAIN) guestbook.$(DOMAIN)"
