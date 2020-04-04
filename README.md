@@ -104,7 +104,7 @@ Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-au
 5\. Iniciando NGINX Ingress Controller:
 
 ```bash
-kubectl ingress
+make ingress
 ```
 
 <p align="center">
@@ -114,19 +114,19 @@ kubectl ingress
 6\. Instalando Helm
 
 ```bash
-kubectl helm
+make helm
 ```
 
 7\. Instalando Prometheus
 
 ```bash
-kubectl prometheus
+make prometheus
 ```
 
 8\. Instalando Grafana
 
 ```bash
-kubectl grafana
+make grafana
 ```
 
 Para revisar las metricas: ``http://grafana.punkerside.com``
@@ -134,19 +134,19 @@ Para revisar las metricas: ``http://grafana.punkerside.com``
 9\. Instalando Elasticsearch
 
 ```bash
-kubectl elasticsearch
+make elasticsearch
 ```
 
 10\. Instalando Fluent-Bit
 
 ```bash
-kubectl fluent-bit
+make fluent-bit
 ```
 
 11\. Instalando Kibana
 
 ```bash
-kubectl kibana
+make kibana
 ```
 
 Para revisar las registros: ``http://kibana.punkerside.com``
@@ -154,7 +154,7 @@ Para revisar las registros: ``http://kibana.punkerside.com``
 12\. Desplegando GuestBook
 
 ```bash
-kubectl guestbook-go
+make guestbook-go
 ```
 
 Para visitar el GuestBook: ``http://guestbook.punkerside.com``
