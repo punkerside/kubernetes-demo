@@ -1,14 +1,6 @@
-<<<<<<< HEAD
-# variables globales
-OWNER = punkerside
-ENV   = dev
-
-# variables de proveedor cloud
-=======
 PROJECT    = kubernetes
 ENV        = dev
 DOMAIN     = punkerside.com
->>>>>>> 8ababbf (corrigiendo errores)
 AWS_REGION = us-east-1
 AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json)]')'
 AWS_GROUP  = $(shell aws --region $(AWS_REGION) autoscaling describe-auto-scaling-groups | grep $(OWNER)-$(ENV) | grep AutoScalingGroupName | cut -d '"' -f 4)
@@ -178,7 +170,7 @@ kibana:
 	helm install kibana elastic/kibana --namespace $(K8S_NAMESPACE) \
 	  --set elasticsearchHosts=http://elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local:9200,ingress.enabled=true,ingress.hosts[0]="kibana.$(DOMAIN)"
 
-guestbook-go:
+guestbook-demo:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-service.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-controller.json
@@ -188,6 +180,7 @@ guestbook-go:
 	export DOMAIN=$(DOMAIN) && envsubst < guestbook/guestbook-ingress.yaml | kubectl apply -f -
 
 dns:
+<<<<<<< HEAD
 	$(eval ZONE_ID = $(shell aws route53 list-hosted-zones-by-name --dns-name punkerside.com | grep hostedzone  | cut -d'/' -f3 | cut -d'"' -f1))
 	@mkdir -p scripts/dns/tmp/
 	@cp scripts/dns/grafana.json scripts/dns/tmp/grafana.json
@@ -203,3 +196,8 @@ dns:
 	aws route53 change-resource-record-sets --hosted-zone-id $(ZONE_ID) --change-batch file://scripts/dns/tmp/kibana.json
 	aws route53 change-resource-record-sets --hosted-zone-id $(ZONE_ID) --change-batch file://scripts/dns/tmp/guestbook.json
 >>>>>>> 8ababbf (corrigiendo errores)
+=======
+	$(eval LB_DNS = $(shell kubectl get services -o wide --all-namespaces | grep ingress-nginx | awk '{print $$5}'))
+	$(eval LB_IP = $(shell dig +short $(LB_DNS) | head -1))
+	@echo "$(LB_IP)	prometheus.$(DOMAIN) grafana.$(DOMAIN) kibana.$(DOMAIN) guestbook.$(DOMAIN)"
+>>>>>>> 067f3c0 (modificando documentacion y corrigiendo procesos automatizados)

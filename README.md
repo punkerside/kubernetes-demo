@@ -43,8 +43,8 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
-| PROJECT | Nombre del proyecto | string | kubernetes | no |
-| ENV | Nombre del entorno | string | dev | no |
+| PROJECT | Nombre del proyecto | string | `kubernetes` | no |
+| ENV | Nombre del entorno | string | `demo` | no |
 | DOMAIN | Nombre del dominio | string | `punkerside.com` | no |
 | AWS_REGION | Region de AWS | string | `us-east-1` | no |
 | K8S_CLUS_VERS | Version de Kubernetes | string | `1.15` | no |
@@ -53,47 +53,53 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 | K8S_NODE_MINI | Numero minimo de nodos | string | `1` | no |
 | K8S_NODE_MAXI | Numero maximo de nodos | string | `6` | no |
 
-
 ## Despliegue
 
-* ### Cluster y nodos Kubernetes (EKS)
+1. Crear cluster y nodos
 
 ```bash
 make create AWS_REGION=us-east-1
 ```
 
-Para habilitar el acceso por defecto desde el comando **kubectl**:
-
+2. Instalar Metrics Server
 
 ```bash
 ln -s ~/.kube/eksctl/clusters/$CLUSTER_NAME ~/.kube/config
 ```
 
-* ### Instalando Web UI (Dashboard)
+Para iniciar el escalado de pods:
+
+```bash
+kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
+kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10
+
+kubectl run --generator=run-pod/v1 -it --rm load-generator --image=busybox /bin/sh
+while true; do wget -q -O- http://php-apache.default.svc.cluster.local; done
+```
+
+Para revisar los registros del escalado: ``kubectl get hpa``
+
+<p align="center">
+  <img src="docs/img/01.png">
+</p>
+
+3. Instalando Web UI (Dashboard)
 
 ```bash
 make addon-dashboard
 ```
 
-Iniciando **proxy**:
+Iniciar dashboard: ``kubectl proxy``
 
-```bash
-kubectl proxy
-```
+Capturar token de sesión: ``kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'``
 
-Para capturar el **token** de acceso Dashboard:
-
-```bash
-kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:"
-```
-
-<a href="http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login" target="_blank">http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login</a>
+Acceso al dashboard: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
 
 <p align="center">
   <img src="docs/img/dashboard.png">
 </p>
 
-* ### Instalando CloudWatch Container Insights
+4. Instalando Cluster Autoscaler
 
 ```bash
 make addon-cloudwatch AWS_REGION=us-east-1
@@ -108,7 +114,7 @@ kubectl scale deployment autoscaler-demo --replicas=100
 
 Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
 
-5\. Iniciando NGINX Ingress Controller:
+5. Iniciando NGINX Ingress Controller:
 
 ```bash
 make ingress
@@ -167,17 +173,13 @@ make ingress-controller
   <img src="docs/img/ingress.png">
 </p>
 
-* ### Instalando GuestBook
+6. Instalando Helm
 
 ```bash
-<<<<<<< HEAD
-make deploy-guestbook
-=======
 make helm
->>>>>>> 4ee1782 (corregir readme)
 ```
 
-Capturar DNS del balanceador asociado al **NGINX Ingress Controller**:
+7. Instalando Prometheus
 
 ```bash
 <<<<<<< HEAD
@@ -203,42 +205,62 @@ make prometheus
 >>>>>>> 4ee1782 (corregir readme)
 ```
 
-8\. Instalando Grafana
+<p align="center">
+  <img src="docs/img/02.png">
+</p>
+
+8. Instalando Grafana
 
 ```bash
-make grafana
+make grafana DOMAIN=punkerside.com
 ```
 
-Para revisar las metricas: ``http://grafana.punkerside.com``
+Para validar el servicio: http://grafana.punkerside.com
 
-9\. Instalando Elasticsearch
+<p align="center">
+  <img src="docs/img/03.png">
+</p>
+
+9. Instalando Elasticsearch
 
 ```bash
 make elasticsearch
 ```
 
-10\. Instalando Fluent-Bit
+10. Instalando Fluent-Bit
 
 ```bash
 make fluent-bit
 ```
 
-11\. Instalando Kibana
+11. Instalando Kibana
 
 ```bash
-make kibana
+make kibana DOMAIN=punkerside.com
 ```
 
-Para revisar las registros: ``http://kibana.punkerside.com``
+Para validar el servicio: http://kibana.punkerside.com
 
-12\. Desplegando GuestBook
+<p align="center">
+  <img src="docs/img/04.png">
+</p>
+
+12. Desplegando GuestBook (aplicación demo)
 
 ```bash
-make guestbook-go
+make guestbook-demo DOMAIN=punkerside.com
 ```
 
+<<<<<<< HEAD
 Para visitar el GuestBook: ``http://guestbook.punkerside.com``
 >>>>>>> 8ababbf (corrigiendo errores)
+=======
+Para validar el servicio: http://guestbook.punkerside.com
+
+<p align="center">
+  <img src="docs/img/05.png">
+</p>
+>>>>>>> 067f3c0 (modificando documentacion y corrigiendo procesos automatizados)
 
 ## Eliminar
 
