@@ -11,11 +11,11 @@ nodeGroups:
     minSize: $K8S_NODE_MINI
     maxSize: $K8S_NODE_MAXI
     desiredCapacity: $K8S_NODE_SIZE
-    volumeSize: 60
+    volumeSize: 100
     privateNetworking: true
     instancesDistribution:
       instanceTypes: $K8S_NODE_TYPE
-      onDemandPercentageAboveBaseCapacity: 25
+      onDemandPercentageAboveBaseCapacity: 0
     iam:
       withAddonPolicies:
         autoScaler: true
@@ -23,7 +23,3 @@ nodeGroups:
         ebs: true
 
 availabilityZones: $AWS_ZONES
-
-cloudWatch:
-  clusterLogging:
-    enableTypes: ["audit", "authenticator", "controllerManager"]

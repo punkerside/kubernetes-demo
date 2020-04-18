@@ -63,7 +63,15 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 make create AWS_REGION=us-east-1
 ```
 
-2. Instalar Metrics Server
+2. Instalando Cluster Autoscaler
+
+```bash
+make autoscaler
+```
+
+Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
+
+3. Instalar Metrics Server
 
 ```bash
 make metrics
@@ -72,11 +80,9 @@ make metrics
 Para iniciar el escalado de pods:
 
 ```bash
-kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
-kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10
-
-kubectl run --generator=run-pod/v1 -it --rm load-generator --image=busybox /bin/sh
-while true; do wget -q -O- http://php-apache.default.svc.cluster.local; done
+kubectl run httpd --image=httpd --requests=cpu=100m --limits=cpu=200m --expose --port=80
+kubectl autoscale deployment httpd --cpu-percent=20 --min=1 --max=20
+kubectl run apache-bench -i --tty --rm --image=httpd -- ab -n 500000 -c 1000 http://httpd.default.svc.cluster.local/
 ```
 
 Para revisar los registros del escalado: ``kubectl get hpa``
@@ -85,7 +91,7 @@ Para revisar los registros del escalado: ``kubectl get hpa``
   <img src="docs/img/01.png">
 </p>
 
-3. Instalando Web UI (Dashboard)
+4. Instalando Web UI (Dashboard)
 
 ```bash
 make dashboard
@@ -93,28 +99,13 @@ make dashboard
 
 Iniciar dashboard: ``kubectl proxy``
 
-Capturar token de sesión: ``kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'``
+Capturar token: ``kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'``
 
 Acceso al dashboard: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
 
 <p align="center">
   <img src="docs/img/dashboard.png">
 </p>
-
-4. Instalando Cluster Autoscaler
-
-```bash
-make autoscaler
-```
-
-Para iniciar el escalado de nodos:
-
-```bash
-kubectl create deployment autoscaler-demo --image=nginx
-kubectl scale deployment autoscaler-demo --replicas=100
-```
-
-Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
 
 5. Iniciando NGINX Ingress Controller:
 
@@ -142,11 +133,15 @@ make prometheus
   <img src="docs/img/02.png">
 </p>
 
+Para validar el servicio: http://prometheus.punkerside.com
+
 8. Instalando Grafana
 
 ```bash
 make grafana DOMAIN=punkerside.com
 ```
+
+Contraseña admin: ``kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode``
 
 Para validar el servicio: http://grafana.punkerside.com
 

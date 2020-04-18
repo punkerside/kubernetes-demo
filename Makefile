@@ -1,15 +1,21 @@
-PROJECT    = kubernetes
-ENV        = dev
+PROJECT    = eks
+ENV        = staging
 DOMAIN     = punkerside.com
 AWS_REGION = us-east-1
-AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json)]')'
+AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[2].ZoneName' --output json)]')'
 
 K8S_CLUS_VERS = 1.15
-K8S_NODE_TYPE = '["r5a.xlarge", "m5a.xlarge", "t3a.medium"]'
-K8S_NODE_SIZE = 3
+K8S_NODE_TYPE = '["r5a.large","m5a.large","r5.large","m5.large"]'
+K8S_NODE_SIZE = 2
 K8S_NODE_MINI = 1
 K8S_NODE_MAXI = 6
 K8S_NAMESPACE = monitoring
+
+VPC_ID    = $(shell aws ec2 describe-vpcs --region $(AWS_REGION) --filters Name=tag:Name,Values=eksctl-$(PROJECT)-$(ENV)-cluster/VPC | jq -r '.Vpcs[].VpcId')
+ELB_ZONE  = $(shell aws elb describe-load-balancers --region $(AWS_REGION) | jq '.LoadBalancerDescriptions[] | select(.VPCId == "$(VPC_ID)")' | jq -r .CanonicalHostedZoneNameID)
+ELB_DNS   = $(shell aws elb describe-load-balancers --region $(AWS_REGION) | jq '.LoadBalancerDescriptions[] | select(.VPCId == "$(VPC_ID)")' | jq -r .CanonicalHostedZoneName)
+ELB_IP    = $(shell dig +short $(ELB_DNS) | head -1)
+DNS_OWNER = true
 
 create:
 	export \
@@ -31,23 +37,21 @@ delete:
 metrics:
 	$(eval DOWNLOAD_URL = $(shell curl -Ls "https://api.github.com/repos/kubernetes-sigs/metrics-server/releases/latest" | jq -r .tarball_url))
 	$(eval DOWNLOAD_VERSION = $(shell grep -o '[^/v]*$$' <<< $(DOWNLOAD_URL)))
-	@rm -rf metrics-server-$(DOWNLOAD_VERSION) metrics-server-$(DOWNLOAD_VERSION).tar.gz
-	curl -Ls $(DOWNLOAD_URL) -o metrics-server-$(DOWNLOAD_VERSION).tar.gz
-	@mkdir metrics-server-$(DOWNLOAD_VERSION)
-	tar -xzf metrics-server-$(DOWNLOAD_VERSION).tar.gz --directory metrics-server-$(DOWNLOAD_VERSION) --strip-components 1
-	kubectl apply -f metrics-server-$(DOWNLOAD_VERSION)/deploy/1.8+/
-
-dashboard:
-	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
-	kubectl apply -f scripts/eks-admin-service-account.yaml
+	kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v$(DOWNLOAD_VERSION)/components.yaml
 
 autoscaler:
 	export CLUSTER_NAME=$(PROJECT)-$(ENV) && envsubst < scripts/cluster-autoscaler-autodiscover.yaml | kubectl apply -f -
+	@kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
+	@kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v1.15.6
 
 ingress:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml
 	kubectl apply -f scripts/service-l7.yaml
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/aws/patch-configmap-l7.yaml
+
+dashboard:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+	kubectl apply -f scripts/eks-admin-service-account.yaml
 
 helm:
 	kubectl create namespace $(K8S_NAMESPACE)
@@ -57,15 +61,13 @@ helm:
 prometheus:
 	helm install prometheus stable/prometheus \
 	  --namespace $(K8S_NAMESPACE) \
-	  --set alertmanager.persistentVolume.storageClass="gp2",server.persistentVolume.storageClass="gp2",server.ingress.enabled="true",server.ingress.hosts[0]="prometheus.$(DOMAIN)"
+	  --set alertmanager.enabled=false,pushgateway.enabled=false,server.persistentVolume.storageClass="gp2",server.ingress.enabled="true",server.ingress.hosts[0]="prometheus.$(DOMAIN)"
 
 grafana:
 	helm install grafana stable/grafana \
 	  -f scripts/grafana.yml \
 	  --namespace $(K8S_NAMESPACE) \
-	  --set=ingress.enabled=True,ingress.hosts={grafana.$(DOMAIN)} \
-	  --set rbac.create=true
-	kubectl get secret -n $(K8S_NAMESPACE) grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+	  --set=ingress.enabled=True,ingress.hosts={grafana.$(DOMAIN)}
 
 elasticsearch:
 	helm install elasticsearch elastic/elasticsearch --namespace $(K8S_NAMESPACE) \
@@ -82,7 +84,7 @@ kibana:
 	helm install kibana elastic/kibana --namespace $(K8S_NAMESPACE) \
 	  --set elasticsearchHosts=http://elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local:9200,ingress.enabled=true,ingress.hosts[0]="kibana.$(DOMAIN)"
 
-guestbook-demo:
+app:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-service.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-controller.json
@@ -92,6 +94,14 @@ guestbook-demo:
 	export DOMAIN=$(DOMAIN) && envsubst < guestbook/guestbook-ingress.yaml | kubectl apply -f -
 
 dns:
-	$(eval LB_DNS = $(shell kubectl get services -o wide --all-namespaces | grep ingress-nginx | awk '{print $$5}'))
-	$(eval LB_IP = $(shell dig +short $(LB_DNS) | head -1))
-	@echo "$(LB_IP)	prometheus.$(DOMAIN) grafana.$(DOMAIN) kibana.$(DOMAIN) guestbook.$(DOMAIN)"
+ifeq ($(DNS_OWNER), true)
+	cd terraform/ && terraform init
+	export AWS_DEFAULT_REGION=$(AWS_REGION) && cd terraform/ && terraform apply \
+	  -var 'dns_name=$(ELB_DNS)' \
+	  -var 'zone_id=$(ELB_ZONE)' \
+	  -var 'domain=$(DOMAIN)' \
+	-auto-approve
+endif
+ifeq ($(DNS_OWNER), false)
+	@echo "$(ELB_IP)	prometheus.$(DOMAIN) grafana.$(DOMAIN) kibana.$(DOMAIN) guestbook.$(DOMAIN)"
+endif
