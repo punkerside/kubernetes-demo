@@ -5,7 +5,7 @@ AWS_REGION = us-east-1
 AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[2].ZoneName' --output json)]')'
 
 K8S_CLUS_VERS = 1.15
-K8S_NODE_TYPE = '["r5a.large","m5a.large","r5.large","m5.large"]'
+K8S_NODE_TYPE = '["r5a.xlarge","m5a.xlarge","r5.xlarge","m5.xlarge"]'
 K8S_NODE_SIZE = 2
 K8S_NODE_MINI = 1
 K8S_NODE_MAXI = 6
@@ -15,7 +15,9 @@ VPC_ID    = $(shell aws ec2 describe-vpcs --region $(AWS_REGION) --filters Name=
 ELB_ZONE  = $(shell aws elb describe-load-balancers --region $(AWS_REGION) | jq '.LoadBalancerDescriptions[] | select(.VPCId == "$(VPC_ID)")' | jq -r .CanonicalHostedZoneNameID)
 ELB_DNS   = $(shell aws elb describe-load-balancers --region $(AWS_REGION) | jq '.LoadBalancerDescriptions[] | select(.VPCId == "$(VPC_ID)")' | jq -r .CanonicalHostedZoneName)
 ELB_IP    = $(shell dig +short $(ELB_DNS) | head -1)
+ELB_SSL   = true
 DNS_OWNER = true
+ACM_ARN   = $(shell aws acm list-certificates --region $(AWS_REGION) | jq '.CertificateSummaryList[] | select(.DomainName == "*.$(DOMAIN)")' | jq -r .CertificateArn)
 
 create:
 	export \
@@ -46,7 +48,12 @@ autoscaler:
 
 ingress:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml
+ifeq ($(ELB_SSL), true)
+	export ACM_ARN=$(ACM_ARN) && envsubst < scripts/service-l7_ssl.yaml | kubectl apply -f -
+endif
+ifeq ($(ELB_SSL), false)
 	kubectl apply -f scripts/service-l7.yaml
+endif
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/aws/patch-configmap-l7.yaml
 
 dashboard:
@@ -71,7 +78,7 @@ grafana:
 
 elasticsearch:
 	helm install elasticsearch elastic/elasticsearch --namespace $(K8S_NAMESPACE) \
-	  --set persistence.enabled="false"
+	  --set persistence.enabled="false",replicas=2
 
 fluent-bit:
 	helm install fluent-bit stable/fluent-bit \
