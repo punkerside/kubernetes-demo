@@ -32,15 +32,20 @@ nodeGroups:
 
 nodeGroups:
   - name: $NAME
-    minSize: $NODE_MIN
-    maxSize: $NODE_MAX
-    desiredCapacity: 1
-    volumeSize: 60
+    minSize: $K8S_NODE_MINI
+    maxSize: $K8S_NODE_MAXI
+    desiredCapacity: $K8S_NODE_SIZE
+    volumeSize: 100
     privateNetworking: true
     instancesDistribution:
+<<<<<<< HEAD
       instanceTypes: $NODE_TYPE
 >>>>>>> 1a914d3 (varios cambios)
       onDemandPercentageAboveBaseCapacity: 25
+=======
+      instanceTypes: $K8S_NODE_TYPE
+      onDemandPercentageAboveBaseCapacity: 0
+>>>>>>> 702ac8a (agregando terraform para la creacion de dns)
     iam:
       withAddonPolicies:
         autoScaler: true
@@ -49,9 +54,13 @@ nodeGroups:
         cloudWatch: true
         ebs: true
 
+<<<<<<< HEAD
 availabilityZones: $AWS_ZONES
 >>>>>>> 1a914d3 (varios cambios)
 
 cloudWatch:
   clusterLogging:
     enableTypes: ["audit", "authenticator", "controllerManager"]
+=======
+availabilityZones: $AWS_ZONES
+>>>>>>> 702ac8a (agregando terraform para la creacion de dns)

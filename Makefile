@@ -1,17 +1,23 @@
-PROJECT    = kubernetes
-ENV        = dev
+PROJECT    = eks
+ENV        = staging
 DOMAIN     = punkerside.com
 AWS_REGION = us-east-1
-AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json)]')'
-AWS_GROUP  = $(shell aws --region $(AWS_REGION) autoscaling describe-auto-scaling-groups | grep $(OWNER)-$(ENV) | grep AutoScalingGroupName | cut -d '"' -f 4)
+AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[2].ZoneName' --output json)]')'
 
-# variables de cluster kubernetes
-KUBE_VER   = 1.14
-NODE_MIN   = 1
-NODE_MAX   = 10
-NODE_TYPE  = '["r5a.large", "m5a.large", "t3a.medium"]'
-KUBECONFIG = "$(HOME)/.kube/eksctl/clusters/$(OWNER)-$(ENV)"
+K8S_CLUS_VERS = 1.15
+K8S_NODE_TYPE = '["r5a.large","m5a.large","r5.large","m5.large"]'
+K8S_NODE_SIZE = 2
+K8S_NODE_MINI = 1
+K8S_NODE_MAXI = 6
+K8S_NAMESPACE = monitoring
 
+VPC_ID    = $(shell aws ec2 describe-vpcs --region $(AWS_REGION) --filters Name=tag:Name,Values=eksctl-$(PROJECT)-$(ENV)-cluster/VPC | jq -r '.Vpcs[].VpcId')
+ELB_ZONE  = $(shell aws elb describe-load-balancers --region $(AWS_REGION) | jq '.LoadBalancerDescriptions[] | select(.VPCId == "$(VPC_ID)")' | jq -r .CanonicalHostedZoneNameID)
+ELB_DNS   = $(shell aws elb describe-load-balancers --region $(AWS_REGION) | jq '.LoadBalancerDescriptions[] | select(.VPCId == "$(VPC_ID)")' | jq -r .CanonicalHostedZoneName)
+ELB_IP    = $(shell dig +short $(ELB_DNS) | head -1)
+DNS_OWNER = true
+
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 # # creando cluster kubernetes
@@ -74,6 +80,8 @@ deploy-guestbook:
 	@sh k8s/getip.sh $(OWNER) $(ENV) $(AWS_REGION) && echo ""
 =======
 # creando cluster kubernetes
+=======
+>>>>>>> 702ac8a (agregando terraform para la creacion de dns)
 create:
 <<<<<<< HEAD
 	eksctl create cluster \
@@ -112,37 +120,42 @@ create:
 # eliminando cluster kubernetes
 delete:
 	eksctl delete cluster \
-	  --name $(OWNER)-$(ENV) \
-	  --region=$(AWS_REGION)
+	  --name $(PROJECT)-$(ENV) \
+	  --region $(AWS_REGION)
+metrics:
+	$(eval DOWNLOAD_URL = $(shell curl -Ls "https://api.github.com/repos/kubernetes-sigs/metrics-server/releases/latest" | jq -r .tarball_url))
+	$(eval DOWNLOAD_VERSION = $(shell grep -o '[^/v]*$$' <<< $(DOWNLOAD_URL)))
+	kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v$(DOWNLOAD_VERSION)/components.yaml
 
-# instalando complemento dashboard
-addon-dashboard:
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta1/aio/deploy/recommended.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f k8s/eks-admin-service-account.yaml
-
-# instalando complemento cloudwatch
-addon-cloudwatch:
-	curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/master/k8s-yaml-templates/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/$(OWNER)-$(ENV)/;s/{{region_name}}/$(AWS_REGION)/" | kubectl --kubeconfig $(KUBECONFIG) apply -f -
+autoscaler:
+	export CLUSTER_NAME=$(PROJECT)-$(ENV) && envsubst < scripts/cluster-autoscaler-autodiscover.yaml | kubectl apply -f -
+	@kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
+	@kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v1.15.6
 
 # instalando complemento metrics server
 addon-metrics:
 	@mkdir -p tmp/ && rm -rf tmp/metrics-server/ && cd tmp/ && git clone https://github.com/kubernetes-incubator/metrics-server.git > /dev/null 2>&1
 	@kubectl --kubeconfig $(KUBECONFIG) apply -f tmp/metrics-server/deploy/1.8+/
 
-# instalando complemento cluster autoscaler
-addon-autoscaler:
-	@export AWS_GROUP=$(AWS_GROUP) && envsubst < k8s/cluster-autoscaler-autodiscover.yaml | kubectl --kubeconfig $(KUBECONFIG) apply -f -
+dashboard:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+	kubectl apply -f scripts/eks-admin-service-account.yaml
 
-# desplegando contenedor de estres
-container-stress:
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f stress/service.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f stress/hpa.yaml
+helm:
+	kubectl create namespace $(K8S_NAMESPACE)
+	helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+	helm repo add elastic https://helm.elastic.co
 
-# instalando nginx ingress controller 
-ingress-controller:
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f k8s/service-l7.yaml
-	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/aws/patch-configmap-l7.yaml
+prometheus:
+	helm install prometheus stable/prometheus \
+	  --namespace $(K8S_NAMESPACE) \
+	  --set alertmanager.enabled=false,pushgateway.enabled=false,server.persistentVolume.storageClass="gp2",server.ingress.enabled="true",server.ingress.hosts[0]="prometheus.$(DOMAIN)"
+
+grafana:
+	helm install grafana stable/grafana \
+	  -f scripts/grafana.yml \
+	  --namespace $(K8S_NAMESPACE) \
+	  --set=ingress.enabled=True,ingress.hosts={grafana.$(DOMAIN)}
 
 <<<<<<< HEAD
 # desplegando guestbook
@@ -170,7 +183,7 @@ kibana:
 	helm install kibana elastic/kibana --namespace $(K8S_NAMESPACE) \
 	  --set elasticsearchHosts=http://elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local:9200,ingress.enabled=true,ingress.hosts[0]="kibana.$(DOMAIN)"
 
-guestbook-demo:
+app:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-service.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-controller.json
@@ -180,6 +193,7 @@ guestbook-demo:
 	export DOMAIN=$(DOMAIN) && envsubst < guestbook/guestbook-ingress.yaml | kubectl apply -f -
 
 dns:
+<<<<<<< HEAD
 <<<<<<< HEAD
 	$(eval ZONE_ID = $(shell aws route53 list-hosted-zones-by-name --dns-name punkerside.com | grep hostedzone  | cut -d'/' -f3 | cut -d'"' -f1))
 	@mkdir -p scripts/dns/tmp/
@@ -201,3 +215,16 @@ dns:
 	$(eval LB_IP = $(shell dig +short $(LB_DNS) | head -1))
 	@echo "$(LB_IP)	prometheus.$(DOMAIN) grafana.$(DOMAIN) kibana.$(DOMAIN) guestbook.$(DOMAIN)"
 >>>>>>> 067f3c0 (modificando documentacion y corrigiendo procesos automatizados)
+=======
+ifeq ($(DNS_OWNER), true)
+	cd terraform/ && terraform init
+	export AWS_DEFAULT_REGION=$(AWS_REGION) && cd terraform/ && terraform apply \
+	  -var 'dns_name=$(ELB_DNS)' \
+	  -var 'zone_id=$(ELB_ZONE)' \
+	  -var 'domain=$(DOMAIN)' \
+	-auto-approve
+endif
+ifeq ($(DNS_OWNER), false)
+	@echo "$(ELB_IP)	prometheus.$(DOMAIN) grafana.$(DOMAIN) kibana.$(DOMAIN) guestbook.$(DOMAIN)"
+endif
+>>>>>>> 31e81a3 (agregando terraform para la creacion de dns)
