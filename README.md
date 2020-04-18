@@ -62,13 +62,13 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 
 ## Despliegue
 
-1. Crear cluster y nodos
+**1. Crear cluster y nodos**
 
 ```bash
 make create AWS_REGION=us-east-1
 ```
 
-2. Instalar Metrics Server
+**2. Instalar Metrics Server**
 
 ```bash
 ln -s ~/.kube/eksctl/clusters/$CLUSTER_NAME ~/.kube/config
@@ -92,7 +92,7 @@ kubectl get hpa
   <img src="docs/img/01.png">
 </p>
 
-3. Instalando Cluster Autoscaler
+**3. Instalando Cluster Autoscaler**
 
 ```bash
 make autoscaler
@@ -104,7 +104,7 @@ Para revisar los registros del escalado:
 kubectl logs -f deployment/cluster-autoscaler -n kube-system
 ```
 
-4. Iniciando NGINX Ingress Controller:
+**4. Iniciando NGINX Ingress Controller**
 
 ```bash
 make ingress ELB_SSL=false
@@ -114,47 +114,39 @@ make ingress ELB_SSL=false
   <img src="docs/img/ingress.png">
 </p>
 
-5. Instalando Web UI (Dashboard)
+**5. Instalando Web UI (Dashboard)**
 
 ```bash
 make addon-dashboard
 ```
 
-Iniciar dashboard
+Iniciar dashboard:
 
 ```bash
 kubectl proxy
 ```
 
-Capturar token
+Capturar token:
 
 ```bash
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'
 ```
 
-Acceso al Dashboard http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
+Acceso al Dashboard:
+
+ http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
 
 <p align="center">
   <img src="docs/img/dashboard.png">
 </p>
 
-5. Iniciando NGINX Ingress Controller:
-
-```bash
-make ingress
-```
-
-<p align="center">
-  <img src="docs/img/ingress.png">
-</p>
-
-6. Instalando Helm
+**6. Instalando Helm**
 
 ```bash
 make helm
 ```
 
-7. Instalando Prometheus
+**7. Instalando Prometheus**
 
 ```bash
 <<<<<<< HEAD
@@ -186,13 +178,13 @@ make prometheus
 
 Para validar el servicio: https://prometheus.punkerside.com
 
-8. Instalando Grafana
+**8. Instalando Grafana**
 
 ```bash
 make grafana DOMAIN=punkerside.com
 ```
 
-Contraseña admin
+Contraseña admin:
 
 ```bash
 kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
@@ -204,46 +196,59 @@ Para validar el servicio: https://grafana.punkerside.com
   <img src="docs/img/03.png">
 </p>
 
-9. Instalando Elasticsearch
+**9. Instalando Elasticsearch**
 
 ```bash
 make elasticsearch
 ```
 
-10. Instalando Fluent-Bit
+**10. Instalando Fluent-Bit**
 
 ```bash
 make fluent-bit
 ```
 
-11. Instalando Kibana
+**11. Instalando Kibana**
 
 ```bash
 make kibana DOMAIN=punkerside.com
 ```
 
-Para validar el servicio https://kibana.punkerside.com
+Para validar el servicio: https://kibana.punkerside.com
 
 <p align="center">
   <img src="docs/img/04.png">
 </p>
 
-12. Desplegando GuestBook (aplicación demo)
+**12. Desplegando GuestBook (aplicación demo)**
 
 ```bash
 make app DOMAIN=punkerside.com
 ```
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Para validar el servicio: http://guestbook.punkerside.com
 =======
 Para validar el servicio https://guestbook.punkerside.com
 >>>>>>> a905dec (fix readme)
+=======
+Para validar el servicio: https://guestbook.punkerside.com
+>>>>>>> 6dc8381 (fix readme)
 
 <p align="center">
   <img src="docs/img/05.png">
 </p>
 
+<<<<<<< HEAD
+=======
+**13. Configurar registros DNS publicos sobre AWS Route53**
+
+```bash
+make dns DOMAIN=punkerside.com DNS_OWNER=false
+```
+
+>>>>>>> 6dc8381 (fix readme)
 ## Eliminar
 
 Para eliminar la infraestructura creada:
