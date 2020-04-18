@@ -95,7 +95,11 @@ kubectl get hpa
 make autoscaler
 ```
 
-Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
+Para revisar los registros del escalado:
+
+```bash
+kubectl logs -f deployment/cluster-autoscaler -n kube-system
+```
 
 4. Iniciando NGINX Ingress Controller:
 
@@ -113,11 +117,19 @@ make ingress ELB_SSL=false
 make dashboard
 ```
 
-Iniciar dashboard: ``kubectl proxy``
+Iniciar dashboard
 
-Capturar token: ``kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'``
+```bash
+kubectl proxy
+```
 
-Acceso al Dashboard: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
+Capturar token
+
+```bash
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'
+```
+
+Acceso al Dashboard http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
 
 <p align="center">
   <img src="docs/img/dashboard.png">
@@ -147,7 +159,11 @@ Para validar el servicio: https://prometheus.punkerside.com
 make grafana DOMAIN=punkerside.com
 ```
 
-Contraseña admin: ``kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode``
+Contraseña admin
+
+```bash
+kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+```
 
 Para validar el servicio: https://grafana.punkerside.com
 
@@ -173,7 +189,7 @@ make fluent-bit
 make kibana DOMAIN=punkerside.com
 ```
 
-Para validar el servicio: https://kibana.punkerside.com
+Para validar el servicio https://kibana.punkerside.com
 
 <p align="center">
   <img src="docs/img/04.png">
@@ -185,7 +201,7 @@ Para validar el servicio: https://kibana.punkerside.com
 make app DOMAIN=punkerside.com
 ```
 
-Para validar el servicio: https://guestbook.punkerside.com
+Para validar el servicio https://guestbook.punkerside.com
 
 <p align="center">
   <img src="docs/img/05.png">
