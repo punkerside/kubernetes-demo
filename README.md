@@ -37,21 +37,28 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 * Metrics Server
 * Cluster Autoscaler (CA)
 * NGINX Ingress Controller
+* Prometheus
+* Grafana
+* Fluent-bit
+* ElasticSearch
+* Kibana
 * GuestBook
 
 ## Variables
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
-| PROJECT | Nombre del proyecto | string | `kubernetes` | no |
-| ENV | Nombre del entorno | string | `demo` | no |
+| PROJECT | Nombre del proyecto | string | `eks` | no |
+| ENV | Nombre del entorno | string | `staging` | no |
 | DOMAIN | Nombre del dominio | string | `punkerside.com` | no |
 | AWS_REGION | Region de AWS | string | `us-east-1` | no |
 | K8S_CLUS_VERS | Version de Kubernetes | string | `1.15` | no |
-| K8S_NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.xlarge", "m5a.xlarge", "t3a.medium"]` | no |
-| K8S_NODE_SIZE | Numero de nodos | string | `3` | no |
+| K8S_NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.xlarge","m5a.xlarge","r5.xlarge","m5.xlarge"]` | no |
+| K8S_NODE_SIZE | Numero de nodos | string | `2` | no |
 | K8S_NODE_MINI | Numero minimo de nodos | string | `1` | no |
 | K8S_NODE_MAXI | Numero maximo de nodos | string | `6` | no |
+| DNS_OWNER | Crear registros DNS publicos (Route53) | string | `true` | no |
+| ELB_SSL | Habilitar SSL en el NGINX Ingress Controller | string | `true` | no |
 
 ## Despliegue
 
@@ -61,15 +68,7 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 make create AWS_REGION=us-east-1
 ```
 
-2. Instalando Cluster Autoscaler
-
-```bash
-make autoscaler
-```
-
-Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
-
-3. Instalar Metrics Server
+2. Instalar Metrics Server
 
 ```bash
 ln -s ~/.kube/eksctl/clusters/$CLUSTER_NAME ~/.kube/config
@@ -83,13 +82,35 @@ kubectl autoscale deployment httpd --cpu-percent=20 --min=1 --max=20
 kubectl run apache-bench -i --tty --rm --image=httpd -- ab -n 500000 -c 1000 http://httpd.default.svc.cluster.local/
 ```
 
-Para revisar los registros del escalado: ``kubectl get hpa``
+Para revisar los registros del escalado:
+
+```bash
+kubectl get hpa
+```
 
 <p align="center">
   <img src="docs/img/01.png">
 </p>
 
-4. Instalando Web UI (Dashboard)
+3. Instalando Cluster Autoscaler
+
+```bash
+make autoscaler
+```
+
+Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
+
+4. Iniciando NGINX Ingress Controller:
+
+```bash
+make ingress ELB_SSL=false
+```
+
+<p align="center">
+  <img src="docs/img/ingress.png">
+</p>
+
+5. Instalando Web UI (Dashboard)
 
 ```bash
 make addon-dashboard
@@ -99,85 +120,18 @@ Iniciar dashboard: ``kubectl proxy``
 
 Capturar token: ``kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'``
 
-Acceso al dashboard: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
+Acceso al Dashboard: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
 
 <p align="center">
   <img src="docs/img/dashboard.png">
 </p>
 
-<<<<<<< HEAD
-4. Instalando Cluster Autoscaler
-
-```bash
-make addon-cloudwatch AWS_REGION=us-east-1
-```
-
-Para iniciar el escalado de nodos:
-
-```bash
-kubectl create deployment autoscaler-demo --image=nginx
-kubectl scale deployment autoscaler-demo --replicas=100
-```
-
-Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
-
-=======
->>>>>>> 31e81a3 (agregando terraform para la creacion de dns)
 5. Iniciando NGINX Ingress Controller:
 
 ```bash
 make ingress
 ```
 
-<p align="center">
-  <img src="docs/img/autoscaling-pods.png">
-</p>
-
-Para revisar los registros del escalado:
-
-```bash
-kubectl get hpa
-```
-
-* ### Instalando Cluster Autoscaler
-
-```bash
-make addon-autoscaler
-```
-
-<p align="center">
-  <img src="docs/img/autoscaling-nodos.png">
-</p>
-
-Para revisar los registros del escalado:
-
-```bash
-kubectl logs -f deployment/cluster-autoscaler -n kube-system
-```
-
-* ### Desplegando contenedor de estres
-
-```bash
-make container-stress
-```
-
-Utilizando un contenedor para enviar consultas **wget** dentro del cluster:
-
-```bash
-TIME=$(date "+%H%M%S") && kubectl run -i --tty load-generator-${TIME} --image=busybox /bin/sh
-```
-
-Dentro del contenedor iniciamos las consultas de saturacion:
-
-```bash
-while true; do wget -q -O- http://stress.default.svc.cluster.local; done
-```
-
-* ### Instalando NGINX Ingress Controller
-
-```bash
-make ingress-controller
-```
 <p align="center">
   <img src="docs/img/ingress.png">
 </p>
@@ -218,7 +172,7 @@ make prometheus
   <img src="docs/img/02.png">
 </p>
 
-Para validar el servicio: http://prometheus.punkerside.com
+Para validar el servicio: https://prometheus.punkerside.com
 
 8. Instalando Grafana
 
@@ -228,7 +182,7 @@ make grafana DOMAIN=punkerside.com
 
 Contraseña admin: ``kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode``
 
-Para validar el servicio: http://grafana.punkerside.com
+Para validar el servicio: https://grafana.punkerside.com
 
 <p align="center">
   <img src="docs/img/03.png">
@@ -252,7 +206,7 @@ make fluent-bit
 make kibana DOMAIN=punkerside.com
 ```
 
-Para validar el servicio: http://kibana.punkerside.com
+Para validar el servicio: https://kibana.punkerside.com
 
 <p align="center">
   <img src="docs/img/04.png">
@@ -261,19 +215,14 @@ Para validar el servicio: http://kibana.punkerside.com
 12. Desplegando GuestBook (aplicación demo)
 
 ```bash
-make guestbook-demo DOMAIN=punkerside.com
+make app DOMAIN=punkerside.com
 ```
 
-<<<<<<< HEAD
-Para visitar el GuestBook: ``http://guestbook.punkerside.com``
->>>>>>> 8ababbf (corrigiendo errores)
-=======
 Para validar el servicio: http://guestbook.punkerside.com
 
 <p align="center">
   <img src="docs/img/05.png">
 </p>
->>>>>>> 067f3c0 (modificando documentacion y corrigiendo procesos automatizados)
 
 ## Eliminar
 
