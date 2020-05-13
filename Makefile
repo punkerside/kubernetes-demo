@@ -1,12 +1,12 @@
 PROJECT    = eks
-ENV        = staging
+ENV        = dev
 DOMAIN     = punkerside.com
 AWS_REGION = us-east-1
 AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[2].ZoneName' --output json)]')'
 
 K8S_CLUS_VERS = 1.15
 K8S_NODE_TYPE = '["r5a.xlarge","m5a.xlarge","r5.xlarge","m5.xlarge"]'
-K8S_NODE_SIZE = 2
+K8S_NODE_SIZE = 1
 K8S_NODE_MINI = 1
 K8S_NODE_MAXI = 6
 K8S_NAMESPACE = monitoring
