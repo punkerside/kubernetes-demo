@@ -73,9 +73,9 @@ make metrics
 Para iniciar el escalado de pods:
 
 ```bash
-kubectl run httpd --image=httpd --requests=cpu=100m --limits=cpu=200m --expose --port=80
-kubectl autoscale deployment httpd --cpu-percent=20 --min=1 --max=20
-kubectl run apache-bench -i --tty --rm --image=httpd -- ab -n 500000 -c 1000 http://httpd.default.svc.cluster.local/
+kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
+kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=20
+kubectl run apache-bench -i --tty --rm --image=httpd -- ab -n 5000000 -c 1000 http://php-apache.default.svc.cluster.local/
 ```
 
 Para revisar los registros del escalado:
