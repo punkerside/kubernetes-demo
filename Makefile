@@ -1,5 +1,5 @@
 PROJECT     = falcon
-ENV         = dev
+ENV         = lab
 DOMAIN      = punkerside.com
 AWS_REGION  = us-east-1
 AWS_ID      = $(shell aws sts get-caller-identity --query 'Account' | cut -d'"' -f2)
