@@ -6,8 +6,8 @@ before_install:
   - sudo apt-get -y install zip make wget python
   - sudo apt-get -y install python-pip
   - sudo pip install awscli
-  - sudo sh docs/install/eksctl.sh
+  - sudo sh docs/install/terraform.sh
+  - sudo sh docs/install/helm.sh
 
 install:
-  - travis_wait 30 make create
-  - travis_wait 30 make delete
+  - travis_wait 60 make quickstart

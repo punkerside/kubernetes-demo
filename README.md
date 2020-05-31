@@ -14,8 +14,9 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 
 ## Prerequisite
 
-* [Instalar eksctl](https://eksctl.io/introduction/installation/)
-* [Instalar awscli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+* [Instalar Terraform](https://www.terraform.io/downloads.html)
+* [Instalar AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
+* [Instalar Helm](https://helm.sh/docs/intro/install/)
 
 ## Recursos desplegados
 
@@ -56,15 +57,28 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 | DNS_OWNER | Crear registros DNS publicos (Route53) | string | `true` | no |
 | ELB_SSL | Habilitar SSL en el NGINX Ingress Controller | string | `true` | no |
 
-## Despliegue
+## Uso
 
 **1. Crear cluster y nodos**
 
 ```bash
-make create AWS_REGION=us-east-1
+make init
+make apply
 ```
 
-**2. Instalar Metrics Server**
+**2. Instalando Cluster Autoscaler**
+
+```bash
+make autoscaler
+```
+
+Para revisar los registros del escalado:
+
+```bash
+kubectl logs -f deployment/cluster-autoscaler -n kube-system
+```
+
+**3. Instalar Metrics Server**
 
 ```bash
 make metrics
@@ -88,38 +102,10 @@ kubectl get hpa
   <img src="docs/img/01.png">
 </p>
 
-**3. Instalando Cluster Autoscaler**
-
-```bash
-make autoscaler
-```
-
-Para revisar los registros del escalado:
-
-```bash
-kubectl logs -f deployment/cluster-autoscaler -n kube-system
-```
-
-**4. Iniciando NGINX Ingress Controller**
-
-```bash
-make ingress ELB_SSL=false
-```
-
-<p align="center">
-  <img src="docs/img/ingress.png">
-</p>
-
-**5. Instalando Web UI (Dashboard)**
+**4. Instalando Web UI (Dashboard)**
 
 ```bash
 make dashboard
-```
-
-Iniciar dashboard:
-
-```bash
-kubectl proxy
 ```
 
 Capturar token:
@@ -128,12 +114,28 @@ Capturar token:
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'
 ```
 
+Iniciar dashboard:
+
+```bash
+kubectl proxy
+```
+
 Acceso al Dashboard:
 
  http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
 
 <p align="center">
   <img src="docs/img/dashboard.png">
+</p>
+
+**5. Instalando NGINX Ingress Controller**
+
+```bash
+make ingress
+```
+
+<p align="center">
+  <img src="docs/img/ingress.png">
 </p>
 
 **6. Instalando Helm**
@@ -157,7 +159,7 @@ Para validar el servicio: https://prometheus.punkerside.com
 **8. Instalando Grafana**
 
 ```bash
-make grafana DOMAIN=punkerside.com
+make grafana
 ```
 
 Contraseña admin:
@@ -187,7 +189,7 @@ make fluent-bit
 **11. Instalando Kibana**
 
 ```bash
-make kibana DOMAIN=punkerside.com
+make kibana
 ```
 
 Para validar el servicio: https://kibana.punkerside.com
@@ -199,7 +201,7 @@ Para validar el servicio: https://kibana.punkerside.com
 **12. Desplegando GuestBook (aplicación demo)**
 
 ```bash
-make app DOMAIN=punkerside.com
+make demo
 ```
 
 Para validar el servicio: https://guestbook.punkerside.com
@@ -211,15 +213,15 @@ Para validar el servicio: https://guestbook.punkerside.com
 **13. Configurar registros DNS publicos sobre AWS Route53**
 
 ```bash
-make dns DOMAIN=punkerside.com DNS_OWNER=false
+make dns
 ```
 
 ## Eliminar
 
 ```bash
-make delete
+make clean
 ```
 
 ## Autor
 
-[Ivan Echegaray Avendaño](https://github.com/punkerside/)
+[Ivan Echegaray Avendaño](https://www.youracclaim.com/users/punkerside/badges)
