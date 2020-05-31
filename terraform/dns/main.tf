@@ -1,4 +1,3 @@
-variable "profile" {}
 variable "region" {}
 variable "domain" {}
 variable "lb_name" {}
@@ -9,7 +8,6 @@ variable "services" {
 
 provider "aws" {
     version = "~> 2.1"
-    profile = var.profile
     region  = var.region
 }
 

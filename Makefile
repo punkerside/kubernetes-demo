@@ -2,8 +2,7 @@ PROJECT     = falcon
 ENV         = dev
 DOMAIN      = punkerside.com
 AWS_REGION  = us-east-1
-AWS_PROFILE = punkerside
-AWS_ID      = $(shell aws sts get-caller-identity --query 'Account' --profile $(AWS_PROFILE)| cut -d'"' -f2)
+AWS_ID      = $(shell aws sts get-caller-identity --query 'Account' | cut -d'"' -f2)
 
 # variables de red
 CIDR_VPC = 172.16.0.0/16
@@ -131,7 +130,6 @@ create:
 apply:
 	cd terraform/ && terraform apply \
 	  -var 'region=$(AWS_REGION)' \
-	  -var 'profile=$(AWS_PROFILE)' \
 	  -var 'domain=$(DOMAIN)' \
 	  -var 'project=$(PROJECT)' \
 	  -var 'env=$(ENV)' \
@@ -145,7 +143,7 @@ apply:
 	  -var 'eks_version=$(K8S_CLUS_VERS)' \
 	  -var 'on_demand_percentage_above_base_capacity=$(K8S_NODE_SPOT)' \
 	-auto-approve
-	aws eks --region $(AWS_REGION) update-kubeconfig --name $(PROJECT)-$(ENV) --profile $(AWS_PROFILE)
+	aws eks --region $(AWS_REGION) update-kubeconfig --name $(PROJECT)-$(ENV)
 	export ROLE='arn:aws:iam::$(AWS_ID):role/$(PROJECT)-$(ENV)-node' && envsubst < configs/aws-auth-cm.yaml | kubectl apply -f -
 
 <<<<<<< HEAD
@@ -297,11 +295,10 @@ endif
 >>>>>>> 5045ef6 (agregando terraform, cambios de ingress, cambio de version de kubernetes)
 =======
 dns:
-	$(eval LB_NAME = $(shell sh configs/dns.sh $(AWS_PROFILE) $(AWS_REGION) $(PROJECT)-$(ENV)))
+	$(eval LB_NAME = $(shell sh configs/dns.sh $(AWS_REGION) $(PROJECT)-$(ENV)))
 	cd terraform/dns/ && terraform init
 	cd terraform/dns/ && terraform apply \
 	  -var 'region=$(AWS_REGION)' \
-	  -var 'profile=$(AWS_PROFILE)' \
 	  -var 'domain=$(DOMAIN)' \
 	  -var 'services=$(K8S_LIST_SERV)' \
 	  -var 'lb_name=$(LB_NAME)'
@@ -313,7 +310,6 @@ clean:
 destroy:
 	cd terraform/ && terraform destroy \
 	  -var 'region=$(AWS_REGION)' \
-	  -var 'profile=$(AWS_PROFILE)' \
 	  -var 'domain=$(DOMAIN)' \
 	  -var 'project=$(PROJECT)' \
 	  -var 'env=$(ENV)' \

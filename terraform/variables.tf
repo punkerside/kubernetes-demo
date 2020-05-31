@@ -1,5 +1,4 @@
 variable "region" {}
-variable "profile" {}
 variable "domain" {}
 variable "project" {}
 variable "env" {}

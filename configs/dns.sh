@@ -1,14 +1,13 @@
 #!/bin/bash
 
-profile=$1
-region=$2
-name=$3
+region=$1
+name=$2
 
-aws elb describe-load-balancers --profile ${profile} --region ${region} --query 'LoadBalancerDescriptions[*].[LoadBalancerName]' --output text > configs/lb.txt
+aws elb describe-load-balancers --region ${region} --query 'LoadBalancerDescriptions[*].[LoadBalancerName]' --output text > configs/lb.txt
 
 while read lb
 do
-  tag=$(aws elb describe-tags --load-balancer-name ${lb} --profile ${profile} --region ${region} | grep ${name} | wc -l)
+  tag=$(aws elb describe-tags --load-balancer-name ${lb} --region ${region} | grep ${name} | wc -l)
   if [ $tag -gt 0 ]
   then
     echo "${lb}"
