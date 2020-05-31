@@ -17,6 +17,7 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 * [Instalar Terraform](https://www.terraform.io/downloads.html)
 * [Instalar AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 * [Instalar Helm](https://helm.sh/docs/intro/install/)
+* [Instalar Kubectl](https://kubernetes.io/es/docs/tasks/tools/install-kubectl/#instalar-kubectl)
 
 ## Recursos desplegados
 
