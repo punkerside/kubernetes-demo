@@ -143,7 +143,8 @@ apply:
 	  -var 'min_size=$(K8S_NODE_MINI)' \
 	  -var 'max_size=$(K8S_NODE_MAXI)' \
 	  -var 'eks_version=$(K8S_CLUS_VERS)' \
-	  -var 'on_demand_percentage_above_base_capacity=$(K8S_NODE_SPOT)'
+	  -var 'on_demand_percentage_above_base_capacity=$(K8S_NODE_SPOT)' \
+	-auto-approve
 	aws eks --region $(AWS_REGION) update-kubeconfig --name $(PROJECT)-$(ENV) --profile $(AWS_PROFILE)
 	export ROLE='arn:aws:iam::$(AWS_ID):role/$(PROJECT)-$(ENV)-node' && envsubst < configs/aws-auth-cm.yaml | kubectl apply -f -
 
@@ -324,5 +325,6 @@ destroy:
 	  -var 'min_size=$(K8S_NODE_MINI)' \
 	  -var 'max_size=$(K8S_NODE_MAXI)' \
 	  -var 'eks_version=$(K8S_CLUS_VERS)' \
-	  -var 'on_demand_percentage_above_base_capacity=$(K8S_NODE_SPOT)'
+	  -var 'on_demand_percentage_above_base_capacity=$(K8S_NODE_SPOT)' \
+	-auto-approve
 >>>>>>> 8f8b6cd (fix travisci)
