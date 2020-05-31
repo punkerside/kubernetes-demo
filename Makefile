@@ -1,5 +1,5 @@
 PROJECT     = falcon
-ENV         = prod
+ENV         = lab
 DOMAIN      = punkerside.com
 AWS_REGION  = us-east-1
 AWS_ID      = $(shell aws sts get-caller-identity --query 'Account' | cut -d'"' -f2)
@@ -19,12 +19,12 @@ K8S_NAMESPACE = monitoring
 K8S_LIST_SERV = ["prometheus","grafana","kibana","guestbook"]
 
 quickstart:
-	make init
-	make apply
-	make clean
+	make cluster
+	make destroy
 
-init:
+cluster:
 	cd terraform/ && terraform init
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -128,6 +128,8 @@ create:
 >>>>>>> 1a914d3 (varios cambios)
 =======
 apply:
+=======
+>>>>>>> 248bfd3 (fix travisci)
 	cd terraform/ && terraform apply \
 	  -var 'region=$(AWS_REGION)' \
 	  -var 'domain=$(DOMAIN)' \
@@ -143,6 +145,8 @@ apply:
 	  -var 'eks_version=$(K8S_CLUS_VERS)' \
 	  -var 'on_demand_percentage_above_base_capacity=$(K8S_NODE_SPOT)' \
 	-auto-approve
+
+nodes:
 	aws eks --region $(AWS_REGION) update-kubeconfig --name $(PROJECT)-$(ENV)
 	export ROLE='arn:aws:iam::$(AWS_ID):role/$(PROJECT)-$(ENV)-node' && envsubst < configs/aws-auth-cm.yaml | kubectl apply -f -
 

@@ -63,11 +63,11 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 
 ## Uso
 
-**1. Crear cluster y nodos**
+**1. Crear cluster y nodes**
 
 ```bash
-make init
-make apply
+make cluster
+make nodes
 ```
 
 **2. Instalando Cluster Autoscaler**
