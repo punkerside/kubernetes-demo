@@ -49,18 +49,18 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|----------|
-| PROJECT | Nombre del proyecto | string | `falcon` | no |
-| ENV | Nombre del entorno | string | `staging` | no |
-| AWS_REGION | Region de AWS | string | `us-east-1` | no |
-| CIDR_VPC | CIDR de la VPC | string | `172.16.0.0/16` | no |
-| CIDR_PRI | CIDR de las subnets privadas | list | `["172.16.0.0/19","172.16.32.0/19","172.16.64.0/19"]` | no |
-| CIDR_PUB | CIDR de las subnets publicas | list | `["172.16.96.0/19","172.16.128.0/19","172.16.160.0/19"]` | no |
-| K8S_CLUS_VERS | Version de Kubernetes | string | `1.16` | no |
-| K8S_NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.xlarge","m5a.xlarge","r5.xlarge","m5.xlarge"]` | no |
-| K8S_NODE_SIZE | Numero de nodos | string | `1` | no |
-| K8S_NODE_MINI | Numero minimo de nodos | string | `1` | no |
-| K8S_NODE_MAXI | Numero maximo de nodos | string | `4` | no |
-| K8S_NODE_SPOT | % de instancias "on-demand" | string | `0` | no |
+| `PROJECT` | Nombre del proyecto | string | `falcon` | no |
+| `ENV` | Nombre del entorno | string | `staging` | no |
+| `AWS_REGION` | Region de AWS | string | `us-east-1` | no |
+| `CIDR_VPC` | CIDR de la VPC | string | `172.16.0.0/16` | no |
+| `CIDR_PRI` | CIDR de las subnets privadas | list | `["172.16.0.0/19","172.16.32.0/19","172.16.64.0/19"]` | no |
+| `CIDR_PUB` | CIDR de las subnets publicas | list | `["172.16.96.0/19","172.16.128.0/19","172.16.160.0/19"]` | no |
+| `K8S_CLUS_VERS` | Version de Kubernetes | string | `1.16` | no |
+| `K8S_NODE_TYPE` | Tipo de instancia de los nodos | list | `["r5a.xlarge","m5a.xlarge","r5.xlarge","m5.xlarge"]` | no |
+| `K8S_NODE_SIZE` | Numero de nodos | string | `1` | no |
+| `K8S_NODE_MINI` | Numero minimo de nodos | string | `1` | no |
+| `K8S_NODE_MAXI` | Numero maximo de nodos | string | `4` | no |
+| `K8S_NODE_SPOT` | % de instancias "on-demand" | string | `0` | no |
 
 ## Uso
 
