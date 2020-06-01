@@ -1,6 +1,5 @@
 PROJECT     = falcon
-ENV         = lab
-DOMAIN      = punkerside.com
+ENV         = staging
 AWS_REGION  = us-east-1
 AWS_ID      = $(shell aws sts get-caller-identity --query 'Account' | cut -d'"' -f2)
 
@@ -16,7 +15,6 @@ K8S_NODE_MINI = 1
 K8S_NODE_MAXI = 4
 K8S_NODE_SPOT = 0
 K8S_NAMESPACE = monitoring
-K8S_LIST_SERV = ["prometheus","grafana","kibana","guestbook"]
 
 quickstart:
 	make cluster
@@ -132,7 +130,6 @@ apply:
 >>>>>>> 248bfd3 (fix travisci)
 	cd terraform/ && terraform apply \
 	  -var 'region=$(AWS_REGION)' \
-	  -var 'domain=$(DOMAIN)' \
 	  -var 'project=$(PROJECT)' \
 	  -var 'env=$(ENV)' \
 	  -var 'cidr_vpc=$(CIDR_VPC)' \
@@ -186,9 +183,9 @@ dashboard:
 	kubectl apply -f configs/eks-admin-service-account.yaml
 
 ingress:
-	$(eval ACM_ARN = $(shell cd terraform/ && terraform output aws_acm_certificate))
-	$(eval VPC_CIDR = $(shell cd terraform/ && terraform output cidr_block))
-	export ACM_ARN=$(ACM_ARN) VPC_CIDR=$(VPC_CIDR) && envsubst < configs/deploy-tls-termination.yaml | kubectl apply -f -
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml
+	kubectl apply -f configs/service-l7.yaml 
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/aws/patch-configmap-l7.yaml
 
 helm:
 	kubectl create namespace $(K8S_NAMESPACE)
@@ -198,13 +195,13 @@ helm:
 prometheus:
 	helm install prometheus stable/prometheus \
 	  --namespace $(K8S_NAMESPACE) \
-	  --set alertmanager.enabled=false,pushgateway.enabled=false,server.persistentVolume.storageClass="gp2",server.ingress.enabled="true",server.ingress.hosts[0]="prometheus.$(DOMAIN)"
+	  --set alertmanager.enabled=false,pushgateway.enabled=false,server.persistentVolume.storageClass="gp2",server.ingress.enabled="false"
 
 grafana:
 	helm install grafana stable/grafana \
 	  -f configs/grafana.yml \
 	  --namespace $(K8S_NAMESPACE) \
-	  --set=ingress.enabled=True,ingress.hosts={grafana.$(DOMAIN)}
+	  --set=ingress.enabled=false
 
 <<<<<<< HEAD
 # desplegando guestbook
@@ -230,8 +227,7 @@ fluent-bit:
 
 kibana:
 	helm install kibana elastic/kibana --namespace $(K8S_NAMESPACE) \
-	  --set elasticsearchHosts=http://elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local:9200,ingress.enabled=true,ingress.hosts[0]="kibana.$(DOMAIN)"
-
+	  --set elasticsearchHosts=http://elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local:9200,ingress.enabled=false
 
 demo:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
@@ -239,9 +235,10 @@ demo:
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-controller.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-service.json
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/guestbook-controller.json
-	kubectl apply -f guestbook/guestbook-service.json
-	export DOMAIN=$(DOMAIN) && envsubst < guestbook/guestbook-ingress.yaml | kubectl apply -f -
+	kubectl apply -f guestbook/guestbook-service.yaml
+	kubectl apply -f guestbook/guestbook-ingress.yaml
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 dns:
@@ -310,11 +307,17 @@ dns:
 clean:
 	export ACM_ARN=$(ACM_ARN) VPC_CIDR=$(VPC_CIDR) && envsubst < configs/deploy-tls-termination.yaml | kubectl delete -f -
 	make destroy
+=======
+# clean:
+# 	kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/aws/patch-configmap-l7.yaml
+# 	kubectl delete -f configs/service-l7.yaml 
+# 	kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml
+# 	make destroy
+>>>>>>> 3b99211 (multiples correcciones)
 
 destroy:
 	cd terraform/ && terraform destroy \
 	  -var 'region=$(AWS_REGION)' \
-	  -var 'domain=$(DOMAIN)' \
 	  -var 'project=$(PROJECT)' \
 	  -var 'env=$(ENV)' \
 	  -var 'cidr_vpc=$(CIDR_VPC)' \
