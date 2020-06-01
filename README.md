@@ -45,18 +45,19 @@ Amazon EKS administra clústeres de instancias de informática de Amazon EC2 y e
 ## Variables
 
 | Name | Description | Type | Default | Required |
-|------|-------------|:----:|:-----:|:-----:|
-| PROJECT | Nombre del proyecto | string | `eks` | no |
+|------|-------------|------|---------|----------|
+| PROJECT | Nombre del proyecto | string | `falcon` | no |
 | ENV | Nombre del entorno | string | `staging` | no |
-| DOMAIN | Nombre del dominio | string | `punkerside.com` | no |
 | AWS_REGION | Region de AWS | string | `us-east-1` | no |
-| K8S_CLUS_VERS | Version de Kubernetes | string | `1.15` | no |
+| CIDR_VPC | CIDR de la VPC | string | `172.16.0.0/16` | no |
+| CIDR_PRI | CIDR de las subnets privadas | list | `["172.16.0.0/19","172.16.32.0/19","172.16.64.0/19"]` | no |
+| CIDR_PUB | CIDR de las subnets publicas | list | `["172.16.96.0/19","172.16.128.0/19","172.16.160.0/19"]` | no |
+| K8S_CLUS_VERS | Version de Kubernetes | string | `1.16` | no |
 | K8S_NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.xlarge","m5a.xlarge","r5.xlarge","m5.xlarge"]` | no |
-| K8S_NODE_SIZE | Numero de nodos | string | `2` | no |
+| K8S_NODE_SIZE | Numero de nodos | string | `1` | no |
 | K8S_NODE_MINI | Numero minimo de nodos | string | `1` | no |
-| K8S_NODE_MAXI | Numero maximo de nodos | string | `6` | no |
-| DNS_OWNER | Crear registros DNS publicos (Route53) | string | `true` | no |
-| ELB_SSL | Habilitar SSL en el NGINX Ingress Controller | string | `true` | no |
+| K8S_NODE_MAXI | Numero maximo de nodos | string | `4` | no |
+| K8S_NODE_SPOT | % de instancias "on-demand" | string | `0` | no |
 
 ## Uso
 
@@ -67,25 +68,19 @@ make cluster
 make nodes
 ```
 
-**2. Instalando Cluster Autoscaler**
-
-```bash
-make autoscaler
-```
-
-Para revisar los registros del escalado:
-
-```bash
-kubectl logs -f deployment/cluster-autoscaler -n kube-system
-```
-
-**3. Instalar Metrics Server**
+**2. Instalar Metrics Server**
 
 ```bash
 make metrics
 ```
 
-Para iniciar el escalado de pods:
+**3. Instalando Cluster Autoscaler**
+
+```bash
+make autoscaler
+```
+
+Iniciar el escalado de nodos y pods:
 
 ```bash
 kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
@@ -93,10 +88,20 @@ kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=20
 kubectl run apache-bench -i --tty --rm --image=httpd -- ab -n 5000000 -c 1000 http://php-apache.default.svc.cluster.local/
 ```
 
-Para revisar los registros del escalado:
+Revisar el escalado de nodos:
 
 ```bash
-kubectl get hpa
+kubectl get nodes --watch
+```
+
+<p align="center">
+  <img src="docs/img/00.png">
+</p>
+
+Revisar el escalado de pods:
+
+```bash
+kubectl get hpa --watch
 ```
 
 <p align="center">
@@ -115,7 +120,7 @@ Capturar token:
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}') | grep "token:" | awk '{print $2}'
 ```
 
-Iniciar dashboard:
+Acceder al dashboard mediante localhost:
 
 ```bash
 kubectl proxy
@@ -151,11 +156,11 @@ make helm
 make prometheus
 ```
 
+Acceder al servicio mediante localhost: ```kubectl port-forward -n monitoring service/prometheus-server 8002:80```
+
 <p align="center">
   <img src="docs/img/02.png">
 </p>
-
-Para validar el servicio: https://prometheus.punkerside.com
 
 **8. Instalando Grafana**
 
@@ -169,7 +174,7 @@ Contraseña admin:
 kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
 ```
 
-Para validar el servicio: https://grafana.punkerside.com
+Acceder al servicio mediante localhost: ```kubectl port-forward -n monitoring service/grafana 8003:80```
 
 <p align="center">
   <img src="docs/img/03.png">
@@ -193,7 +198,7 @@ make fluent-bit
 make kibana
 ```
 
-Para validar el servicio: https://kibana.punkerside.com
+Acceder al servicio mediante localhost: ```kubectl port-forward -n monitoring service/kibana-kibana 8004:80```
 
 <p align="center">
   <img src="docs/img/04.png">
@@ -205,22 +210,16 @@ Para validar el servicio: https://kibana.punkerside.com
 make demo
 ```
 
-Para validar el servicio: https://guestbook.punkerside.com
+Acceder al servicio mediante Ingress Controller: ```kubectl get ingress```
 
 <p align="center">
   <img src="docs/img/05.png">
 </p>
 
-**13. Configurar registros DNS publicos sobre AWS Route53**
-
-```bash
-make dns
-```
-
 ## Eliminar
 
 ```bash
-make clean
+make destroy
 ```
 
 ## Autor

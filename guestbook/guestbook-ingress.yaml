@@ -6,8 +6,7 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
 spec:
   rules:
-  - host: guestbook.$DOMAIN
-    http:
+  - http:
       paths:
       - path: /
         backend:

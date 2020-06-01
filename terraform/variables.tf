@@ -1,5 +1,4 @@
 variable "region" {}
-variable "domain" {}
 variable "project" {}
 variable "env" {}
 variable "eks_version" {}
