@@ -140,6 +140,9 @@ charts:
 jaeger:
 	@helm install -n monitoring jaeger jaegertracing/jaeger -f k8s/jaeger.yaml
 
+hotrod:
+	@kubectl apply -f k8s/hotrod.yaml
+
 prometheus:
 	@helm install -n monitoring prometheus prometheus-community/prometheus -f k8s/prometheus.yaml
 
@@ -148,9 +151,6 @@ loki:
 
 fluent-bit:
 	@helm install -n monitoring fluent-bit loki/fluent-bit --set=loki.serviceName=loki.monitoring.svc.cluster.local --set=loki.serviceScheme=http --set=loki.servicePort=3100 --version=0.3.0
-
-hotrod:
-	@kubectl apply -f k8s/hotrod.yaml
 
 grafana:
 	@helm install -n monitoring grafana grafana/grafana -f k8s/grafana.yaml
