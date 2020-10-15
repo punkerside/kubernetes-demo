@@ -59,7 +59,6 @@ destroy:
 	@helm uninstall -n monitoring loki
 	@helm uninstall -n monitoring fluent-bit
 	@helm uninstall -n monitoring grafana
-
 	@cd terraform/ && terraform init
 	@export AWS_DEFAULT_REGION="$(AWS_REGION)" && \
 	cd terraform/ && terraform destroy \
