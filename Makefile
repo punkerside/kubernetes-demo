@@ -53,7 +53,7 @@ hotrod-ingress:
 	@kubectl apply -f k8s/hotrod-ingressroute.yaml
 
 destroy:
-	@helm uninstall -n monitoring traefik
+	@helm uninstall traefik
 	@helm uninstall -n monitoring jaeger
 	@helm uninstall -n monitoring prometheus
 	@helm uninstall -n monitoring loki
