@@ -15,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 8,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -376,7 +376,7 @@
       "pluginVersion": "7.2.0",
       "targets": [
         {
-          "expr": "sum(kube_pod_status_scheduled{namespace=\"default\",condition=\"false\"})",
+          "expr": "sum(kube_pod_status_scheduled{namespace=\"default\",condition=\"false\"}) + sum(kube_pod_container_status_waiting_reason{namespace=\"default\",reason=\"ErrImagePull\"}) + sum(kube_pod_container_status_waiting_reason{namespace=\"default\",reason=\"ImagePullBackOff\"}) + sum(kube_pod_container_status_waiting_reason{namespace=\"default\",reason=\"CrashLoopBackOff\"})",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -1031,12 +1031,12 @@
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "K8S",
   "uid": "dJhf8Y5Mk",
-  "version": 3
+  "version": 2
 }

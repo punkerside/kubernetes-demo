@@ -166,6 +166,8 @@ kubectl port-forward service/hotrod 8080:8080
 kubectl -n monitoring port-forward service/jaeger-query 16686:80
 ```
 
+<a href="http://localhost:16686/" target="_blank">http://localhost:16686/</a>
+
 <p align="center">
   <img src="docs/img/07.png">
 </p>
@@ -182,6 +184,8 @@ make prometheus
 kubectl -n monitoring port-forward service/prometheus-server 9090:80
 ```
 
+<a href="http://localhost:9090/" target="_blank">http://localhost:9090/</a>
+
 <p align="center">
   <img src="docs/img/03.png">
 </p>
@@ -197,6 +201,8 @@ make loki
 ```bash
 kubectl -n monitoring port-forward service/loki 3100
 ```
+
+<a href="http://localhost:3100/api/prom/label" target="_blank">http://localhost:3100/api/prom/label</a>
 
 <p align="center">
   <img src="docs/img/04.png">
@@ -229,6 +235,8 @@ Acceder al servicio mediante Ingress Controller: ```kubectl get ingress```
 kubectl -n monitoring port-forward daemonset/fluent-bit-fluent-bit-loki 2020
 ```
 >>>>>>> 3f6262e (multiples cambios)
+
+<a href="http://localhost:2020/api/v1/metrics/prometheus" target="_blank">http://localhost:2020/api/v1/metrics/prometheus</a>
 
 <p align="center">
   <img src="docs/img/05.png">
@@ -264,6 +272,8 @@ make grafana
 kubectl -n monitoring port-forward service/grafana 8300:80
 ```
 
+<a href="http://localhost:8300/" target="_blank">http://localhost:8300/</a>
+
 <p align="center">
   <img src="docs/img/08.png">
 </p>
@@ -277,6 +287,8 @@ make traefik
 ```
 
 * Acceder al dashboard del servicio mediante localhost
+
+<a href="http://localhost:9000/dashboard/#/" target="_blank">http://localhost:9000/dashboard/#/</a>
 
 ```bash
 kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name) 9000:9000

@@ -3,6 +3,10 @@ provisionDataStore:
   elasticsearch: false
   kafka: false
 
+cassandra:
+  persistence:
+    enabled: true
+
 ingester:
   enabled: false
 
