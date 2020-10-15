@@ -62,7 +62,7 @@ make metrics-server
 make autoscaler
 ```
 
-4. Iniciar el escalado de pods y nodos:
+* Iniciar el escalado de pods y nodos:
 
 ```bash
 kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
@@ -100,13 +100,13 @@ kubectl logs -f deployment/cluster-autoscaler -n kube-system
   <img src="docs/img/02.png">
 </p>
 
-5. Instalando **Charts**
+4. Instalando **Charts**
 
 ```bash
 make charts
 ```
 
-6. Instalar **Jaeger**:
+5. Instalar **Jaeger**:
 
 ```bash
 make jaeger
@@ -138,7 +138,7 @@ kubectl -n monitoring port-forward service/jaeger-query 16686:80
   <img src="docs/img/07.png">
 </p>
 
-7. Instalando **Prometheus**
+6. Instalando **Prometheus**
 
 ```bash
 make prometheus
@@ -154,7 +154,7 @@ kubectl -n monitoring port-forward service/prometheus-server 9090:80
   <img src="docs/img/03.png">
 </p>
 
-8. Instalar **Loki**:
+7. Instalar **Loki**:
 
 ```bash
 make loki
@@ -170,7 +170,7 @@ kubectl -n monitoring port-forward service/loki 3100
   <img src="docs/img/04.png">
 </p>
 
-9. Instalar **Fluent Bit**:
+8. Instalar **Fluent Bit**:
 
 ```bash
 make fluent-bit
@@ -186,17 +186,39 @@ kubectl -n monitoring port-forward daemonset/fluent-bit-fluent-bit-loki 2020
   <img src="docs/img/05.png">
 </p>
 
-10. Instalar **Grafana**
+9. Instalar **Grafana**
 
 ```bash
 make grafana
+```
+
+* Acceder al servicio mediante localhost
+
+```bash
+kubectl -n monitoring port-forward service/grafana 8300:80
 ```
 
 <p align="center">
   <img src="docs/img/08.png">
 </p>
 
-**NOTA** se comparte plantilla JSON para la creacion del [dashboard](https://github.com/punkerside/terraform-aws-eks/blob/master/k8s/grafana.json)
+Plantilla JSON para la creacion del [Dashboard](https://github.com/punkerside/terraform-aws-eks/blob/master/k8s/grafana.json).
+
+10. Instalando **Traefik**
+
+```bash
+make traefik
+```
+
+* Acceder al dashboard del servicio mediante localhost
+
+```bash
+kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name) 9000:9000
+```
+
+<p align="center">
+  <img src="docs/img/09.png">
+</p>
 
 
 ## Eliminar
