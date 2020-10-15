@@ -1,0 +1,43 @@
+replicas: 1
+
+persistence:
+  type: pvc
+  enabled: true
+  storageClassName: "gp2"
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+adminUser: admin
+adminPassword: admin
+
+plugins:
+  - grafana-piechart-panel
+
+datasources:
+ datasources.yaml:
+   apiVersion: 1
+   datasources:
+   - name: Prometheus
+     type: prometheus
+     url: http://prometheus-server.monitoring.svc.cluster.local
+     access: proxy
+     isDefault: true
+     basicAuth: false
+     withCredentials: false
+     editable: true
+   - name: Loki
+     type: loki
+     url: http://loki.monitoring.svc.cluster.local:3100
+     isDefault: false
+     basicAuth: false
+     withCredentials: false
+     editable: true
+   - name: Jaeger
+     type: jaeger
+     url: http://jaeger-query.monitoring.svc.cluster.local
+     access: proxy
+     isDefault: false
+     basicAuth: false
+     withCredentials: false
+     editable: true
