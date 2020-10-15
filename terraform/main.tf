@@ -8,7 +8,7 @@ module "vpc" {
 
 module "eks" {
   source  = "punkerside/eks/aws"
-  version = "0.0.2"
+  version = "0.0.4"
 
   project            = var.project
   env                = var.env

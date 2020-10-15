@@ -1,0 +1,27 @@
+provisionDataStore:
+  cassandra: true
+  elasticsearch: false
+  kafka: false
+
+ingester:
+  enabled: false
+
+agent:
+  enabled: true
+
+collector:
+  enabled: true
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+
+query:
+  enabled: true
+  replicaCount: 1
+
+hotrod:
+  enabled: false
+  replicaCount: 1
+  tracing:
+    host: jaeger-agent.monitoring.svc.cluster.local
+    port: 6831
