@@ -58,7 +58,7 @@ make metrics-server
 3. Instalar **Cluster Autoscaler**
 
 ```bash
-make autoscaler
+make cluster-autoscaler
 ```
 
 * Iniciar el escalado de pods y nodos:
@@ -153,6 +153,8 @@ make hotrod
 ```bash
 kubectl port-forward service/hotrod 8080:8080
 ```
+
+<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>
 
 <p align="center">
   <img src="docs/img/06.png">
