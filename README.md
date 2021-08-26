@@ -14,6 +14,7 @@
 * [Instalar AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 * [Instalar Helm](https://helm.sh/docs/intro/install/)
 * [Instalar Kubectl](https://kubernetes.io/es/docs/tasks/tools/install-kubectl/#instalar-kubectl)
+* [Instalar eksctl](https://github.com/weaveworks/eksctl)
 
 ## **Recursos desplegados**
 
@@ -22,18 +23,16 @@
 * Virtual Private Cloud (VPC)
 * Identity and Access Management (IAM)
 * Elastic Container Service for Kubernetes (EKS)
-* Auto Scaling Groups (EC2)
+* Amazon EKS managed node (EKS)
 
 ### **2. Kubernetes**
 
 * Metrics Server
 * Cluster Autoscaler (CA)
-* Traefik
-* Grafana
-* Prometheus
-* Loki
-* Fluent Bit
-* Jaeger
+* AWS Container Insights
+* AWS XRay
+* Nginx Controller
+* Guestbook
 
 ## **Variables**
 
@@ -41,6 +40,8 @@
 |------|-------------|------|---------|----------|
 | `PROJECT` | Nombre del proyecto | string | `falcon` | no |
 | `ENV` | Nombre del entorno | string | `k8s` | no |
+| `AWS_REGION` | Region de Amazon AWS | string | `us-east-1` | no |
+| `EKS_VERSION` | Version de Kubernetes | string | `1.21` | no |
 
 ## **Uso**
 
@@ -100,140 +101,59 @@ kubectl logs -f deployment/cluster-autoscaler -n kube-system
   <img src="docs/img/02.png">
 </p>
 
-4. Instalando **Charts**
+4. Instalar **AWS Container Insights**
 
 ```bash
-make charts
+make container-insights
 ```
-
-5. Instalar **Jaeger**:
-
-```bash
-make jaeger
-```
-
-* Desplegar aplicacion **HotROD**
-
-```bash
-make hotrod
-```
-
-* Acceder al servicio HotROD mediante localhost
-
-```bash
-kubectl port-forward service/hotrod 8080:8080
-```
-
-<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>
-
-<p align="center">
-  <img src="docs/img/06.png">
-</p>
-
-* Acceder al servicio Jaeger mediante localhost
-
-```bash
-kubectl -n monitoring port-forward service/jaeger-query 16686:80
-```
-
-<a href="http://localhost:16686/" target="_blank">http://localhost:16686/</a>
-
-<p align="center">
-  <img src="docs/img/07.png">
-</p>
-
-6. Instalando **Prometheus**
-
-```bash
-make prometheus
-```
-
-* Acceder al servicio mediante localhost
-
-```bash
-kubectl -n monitoring port-forward service/prometheus-server 9090:80
-```
-
-<a href="http://localhost:9090/" target="_blank">http://localhost:9090/</a>
 
 <p align="center">
   <img src="docs/img/03.png">
 </p>
 
-7. Instalar **Loki**:
+5. Instalar **AWS X-Ray**
 
 ```bash
-make loki
+make xray
 ```
-
-* Acceder al servicio mediante localhost
-
-```bash
-kubectl -n monitoring port-forward service/loki 3100
-```
-
-<a href="http://localhost:3100/api/prom/label" target="_blank">http://localhost:3100/api/prom/label</a>
 
 <p align="center">
   <img src="docs/img/04.png">
 </p>
 
-8. Instalar **Fluent Bit**:
+6. Desplegar **AWS X-Ray Sample**
 
 ```bash
-make fluent-bit
+make xray-sample
 ```
 
-* Acceder al servicio mediante localhost
+* Capturar DNS del balanceador asociado al servicio:
 
 ```bash
-kubectl -n monitoring port-forward daemonset/fluent-bit-fluent-bit-loki 2020
+kubectl get service x-ray-sample-front-k8s -o wide
 ```
-
-<a href="http://localhost:2020/api/v1/metrics/prometheus" target="_blank">http://localhost:2020/api/v1/metrics/prometheus</a>
 
 <p align="center">
   <img src="docs/img/05.png">
 </p>
 
-9. Instalar **Grafana**
+7. Desplegar **Nginx Ingress Controller**
 
 ```bash
-make grafana
+make nginx-controller
 ```
 
-* Acceder al servicio mediante localhost
+8. Desplegar **guestbook**
 
 ```bash
-kubectl -n monitoring port-forward service/grafana 8300:80
+make guestbook
 ```
 
-<a href="http://localhost:8300/" target="_blank">http://localhost:8300/</a>
-
-<p align="center">
-  <img src="docs/img/08.png">
-</p>
-
-Plantilla JSON para la creacion del [Dashboard](https://github.com/punkerside/terraform-aws-eks/blob/master/k8s/grafana.json).
-
-10. Instalando **Traefik**
+* Capturar DNS del balanceador asociado al Nginx Ingress Controller:
 
 ```bash
-make traefik
+kubectl get service nginx-ingress-nginx-ingress -o wide
 ```
-
-* Acceder al dashboard del servicio mediante localhost
-
-<a href="http://localhost:9000/dashboard/#/" target="_blank">http://localhost:9000/dashboard/#/</a>
-
-```bash
-kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name) 9000:9000
-```
-
-<p align="center">
-  <img src="docs/img/09.png">
-</p>
-
 
 ## Eliminar
 

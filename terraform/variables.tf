@@ -1,7 +1,5 @@
-variable "project" {
-    type = string
-}
-
-variable "env" {
-    type = string
+variable "name" {
+  description = "Nombre asignado a todos los recursos creados por esta plantilla"
+  type        = string
+  default     = null
 }
