@@ -68,7 +68,7 @@ make cluster-autoscaler
 ```bash
 kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
 kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=100
-kubectl run apache-bench -i --tty --rm --image=httpd -- ab -n 5000000 -c 1000 http://php-apache.default.svc.cluster.local/
+kubectl run apache-bench -i --tty --rm --image=httpd -- ab -n 5000000 -c 200 http://php-apache.default.svc.cluster.local/
 ```
 
 * Revisar el escalado de pods:
@@ -143,7 +143,7 @@ kubectl get service x-ray-sample-front-k8s -o wide
 make nginx-controller
 ```
 
-8. Desplegar **guestbook**
+8. Desplegar **Guestbook**
 
 ```bash
 make guestbook
@@ -154,6 +154,10 @@ make guestbook
 ```bash
 kubectl get service nginx-ingress-nginx-ingress -o wide
 ```
+
+<p align="center">
+  <img src="docs/img/07.png">
+</p>
 
 ## Eliminar
 

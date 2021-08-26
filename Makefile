@@ -47,6 +47,7 @@ guestbook:
 
 destroy:
 	@helm uninstall nginx-ingress
+	@kubectl delete service x-ray-sample-front-k8s
 	@aws cloudformation delete-stack --stack-name eksctl-$(PROJECT)-$(ENV)-addon-iamserviceaccount-default-xray-daemon --region $(AWS_REGION)
 	@cd terraform/ && terraform init
 	@export AWS_DEFAULT_REGION="$(AWS_REGION)" && \
