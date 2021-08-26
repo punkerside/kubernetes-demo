@@ -3,3 +3,6 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform.tfstate.lock.info
 lb.txt
+values.yaml
+guestbook.yaml
+.terraform.lock.hcl

@@ -1,0 +1,31 @@
+controller:
+  kind: deployment
+  image:
+    repository: nginx/nginx-ingress
+    tag: "1.12.0"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  service:
+    create: true
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: '60'
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+      service.beta.kubernetes.io/aws-load-balancer-type: elb
+    httpPort:
+      enable: true
+      port: 80
+      targetPort: 80
+    httpsPort:
+      enable: false
+      # port: 443
+      # targetPort: 80

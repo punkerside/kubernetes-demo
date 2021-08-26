@@ -1,9 +1,0 @@
-tracing:
-  jaegerAgentHost: jaeger-agent.default.svc.cluster.local
-
-persistence:
-  enabled: false
-
-env:
-- name: JAEGER_AGENT_PORT
-  value: "6831"
