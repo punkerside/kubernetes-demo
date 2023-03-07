@@ -163,6 +163,7 @@ destroy:
 	@export AWS_DEFAULT_REGION="$(AWS_REGION)" && \
 	cd terraform/ && terraform destroy \
 <<<<<<< HEAD
+<<<<<<< HEAD
 	  -var 'project=$(PROJECT)' \
 	  -var 'env=$(ENV)' \
 	-auto-approve
@@ -365,6 +366,7 @@ destroy:
 =======
 >>>>>>> 3f6262e (multiples cambios)
 =======
+=======
+>>>>>>> f6b3327 (restableciendo)
 	  -var 'name=$(PROJECT)-$(ENV)' \
 	-auto-approve
->>>>>>> 1146661 (multiples actualizaciones, cambios del stack de monitoreo y trazas)

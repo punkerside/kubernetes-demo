@@ -21,6 +21,7 @@
 ### **1. Amazon AWS**
 
 * Virtual Private Cloud (VPC)
+* Identity and Access Management (IAM)
 * Elastic Container Service for Kubernetes (EKS)
 * Amazon EKS managed node (EKS)
 
@@ -96,37 +97,6 @@ kubectl get nodes --watch
 kubectl logs -f deployment/cluster-autoscaler -n kube-system
 ```
 
-<<<<<<< HEAD
-**7. Instalando Prometheus**
-
-```bash
-<<<<<<< HEAD
-<<<<<<< HEAD
-kubectl get svc --namespace=ingress-nginx ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
-```
-
-## Variables
-
-| Name | Description | Type | Default | Required |
-|------|-------------|:----:|:-----:|:-----:|
-| OWNER | Nombre del propietario | string | punkerside | no |
-| ENV | Nombre del entorno | string | dev | no |
-| AWS_REGION | Region de AWS | string | `us-east-1` | no |
-| KUBE_VER | Version de Kubernetes | string | `1.14` | no |
-| NODE_MIN | Numero minimo de nodos | string | `1` | no |
-| NODE_MAX | Numero maximo de nodos | string | `10` | no |
-| NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.large", "m5a.large"]` | no |
-=======
-kubectl prometheus
-=======
-make prometheus
->>>>>>> 4ee1782 (corregir readme)
-```
-
-Acceder al servicio mediante localhost: ```kubectl port-forward -n monitoring service/prometheus-server 8002:80```
-
-=======
->>>>>>> 3f6262e (multiples cambios)
 <p align="center">
   <img src="docs/img/02.png">
 </p>
@@ -157,59 +127,17 @@ make xray
 make xray-sample
 ```
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-Para validar el servicio: http://guestbook.punkerside.com
-=======
-Para validar el servicio https://guestbook.punkerside.com
->>>>>>> a905dec (fix readme)
-=======
-Para validar el servicio: https://guestbook.punkerside.com
->>>>>>> 6dc8381 (fix readme)
-=======
-Acceder al servicio mediante Ingress Controller: ```kubectl get ingress```
->>>>>>> 3b99211 (multiples correcciones)
-=======
-* Acceder al servicio mediante localhost
-=======
 * Capturar DNS del balanceador asociado al servicio:
->>>>>>> 1146661 (multiples actualizaciones, cambios del stack de monitoreo y trazas)
 
 ```bash
 kubectl get service x-ray-sample-front-k8s -o wide
 ```
->>>>>>> 3f6262e (multiples cambios)
 
 <p align="center">
   <img src="docs/img/05.png">
 </p>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-**13. Configurar registros DNS publicos sobre AWS Route53**
-
-```bash
-make dns
-```
-
->>>>>>> 6dc8381 (fix readme)
-=======
->>>>>>> 3b99211 (multiples correcciones)
-=======
-10. Instalar **Grafana**
-=======
-9. Instalar **Grafana**
->>>>>>> 89caafc (corrigiendo documentacion)
-=======
 7. Desplegar **Nginx Ingress Controller**
->>>>>>> 1146661 (multiples actualizaciones, cambios del stack de monitoreo y trazas)
 
 ```bash
 make nginx-controller
@@ -227,50 +155,16 @@ make guestbook
 kubectl get service nginx-ingress-nginx-ingress -o wide
 ```
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-* Acceder al dashboard del servicio mediante localhost
-
-<a href="http://localhost:9000/dashboard/#/" target="_blank">http://localhost:9000/dashboard/#/</a>
-
-```bash
-kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" --output=name) 9000:9000
-```
-
-<p align="center">
-  <img src="docs/img/09.png">
-</p>
-
-
->>>>>>> 3f6262e (multiples cambios)
-=======
->>>>>>> 1146661 (multiples actualizaciones, cambios del stack de monitoreo y trazas)
-=======
 <p align="center">
   <img src="docs/img/07.png">
 </p>
 
->>>>>>> 33410ba (actualizando documentacion)
 ## Eliminar
-
-Para eliminar la infraestructura creada:
 
 ```bash
 make destroy
 ```
 
-## Authors
+## Autor
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 [Ivan Echegaray Avendaño](https://github.com/punkerside/)
-
-## License
-
-Apache 2 Licensed. See LICENSE for full details.
-=======
-[Ivan Echegaray Avendaño](https://www.youracclaim.com/users/punkerside/badges)
->>>>>>> 8f8b6cd (fix travisci)
-=======
-[Ivan Echegaray Avendaño](https://github.com/punkerside/)
->>>>>>> 3f6262e (multiples cambios)
