@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 # variables globales
 OWNER = punkerside
 ENV   = dev
 
 # variables de proveedor cloud
+=======
+PROJECT    = kubernetes
+ENV        = dev
+DOMAIN     = punkerside.com
+>>>>>>> 8ababbf (corrigiendo errores)
 AWS_REGION = us-east-1
 AWS_ZONES  = '$(shell echo '[$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[0].ZoneName' --output json),$(shell aws ec2 describe-availability-zones --region=$(AWS_REGION) --query 'AvailabilityZones[1].ZoneName' --output json)]')'
 AWS_GROUP  = $(shell aws --region $(AWS_REGION) autoscaling describe-auto-scaling-groups | grep $(OWNER)-$(ENV) | grep AutoScalingGroupName | cut -d '"' -f 4)
@@ -146,6 +152,7 @@ ingress-controller:
 	@kubectl --kubeconfig $(KUBECONFIG) apply -f k8s/service-l7.yaml
 	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/aws/patch-configmap-l7.yaml
 
+<<<<<<< HEAD
 # desplegando guestbook
 deploy-guestbook:
 	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
@@ -155,3 +162,44 @@ deploy-guestbook:
 	@kubectl --kubeconfig $(KUBECONFIG) apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/guestbook-controller.json
 	@kubectl --kubeconfig $(KUBECONFIG) apply -f guestbook/service.json
 	@kubectl --kubeconfig $(KUBECONFIG) apply -f guestbook/ingress.yaml
+=======
+elasticsearch:
+	helm install elasticsearch elastic/elasticsearch --namespace $(K8S_NAMESPACE) \
+	  --set persistence.enabled="false"
+
+fluent-bit:
+	helm install fluent-bit stable/fluent-bit \
+	  --namespace $(K8S_NAMESPACE) \
+	  --set backend.type=es \
+	  --set input.systemd.enabled=true \
+	  --set backend.es.host=elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local
+
+kibana:
+	helm install kibana elastic/kibana --namespace $(K8S_NAMESPACE) \
+	  --set elasticsearchHosts=http://elasticsearch-master.$(K8S_NAMESPACE).svc.cluster.local:9200,ingress.enabled=true,ingress.hosts[0]="kibana.$(DOMAIN)"
+
+guestbook-go:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-controller.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-master-service.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-controller.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/redis-slave-service.json
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/examples/master/guestbook-go/guestbook-controller.json
+	kubectl apply -f guestbook/guestbook-service.json
+	export DOMAIN=$(DOMAIN) && envsubst < guestbook/guestbook-ingress.yaml | kubectl apply -f -
+
+dns:
+	$(eval ZONE_ID = $(shell aws route53 list-hosted-zones-by-name --dns-name punkerside.com | grep hostedzone  | cut -d'/' -f3 | cut -d'"' -f1))
+	@mkdir -p scripts/dns/tmp/
+	@cp scripts/dns/grafana.json scripts/dns/tmp/grafana.json
+	@cp scripts/dns/kibana.json scripts/dns/tmp/kibana.json
+	@cp scripts/dns/guestbook.json scripts/dns/tmp/guestbook.json
+	@sed -i 's/ALB_ZONE/$(ALB_ZONE)/g' scripts/dns/tmp/kibana.json
+	@sed -i 's/ALB_ZONE/$(ALB_ZONE)/g' scripts/dns/tmp/grafana.json
+	@sed -i 's/ALB_ZONE/$(ALB_ZONE)/g' scripts/dns/tmp/guestbook.json
+	@sed -i 's/ALB_DNS/$(ALB_DNS)/g' scripts/dns/tmp/kibana.json
+	@sed -i 's/ALB_DNS/$(ALB_DNS)/g' scripts/dns/tmp/grafana.json
+	@sed -i 's/ALB_DNS/$(ALB_DNS)/g' scripts/dns/tmp/guestbook.json
+	aws route53 change-resource-record-sets --hosted-zone-id $(ZONE_ID) --change-batch file://scripts/dns/tmp/grafana.json
+	aws route53 change-resource-record-sets --hosted-zone-id $(ZONE_ID) --change-batch file://scripts/dns/tmp/kibana.json
+	aws route53 change-resource-record-sets --hosted-zone-id $(ZONE_ID) --change-batch file://scripts/dns/tmp/guestbook.json
+>>>>>>> 8ababbf (corrigiendo errores)
