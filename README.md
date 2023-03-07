@@ -99,9 +99,6 @@ kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | gre
 make addon-cloudwatch AWS_REGION=us-east-1
 ```
 
-<<<<<<< HEAD
-* ### Instalando Metrics Server
-=======
 Para iniciar el escalado de nodos:
 
 ```bash
@@ -112,10 +109,9 @@ kubectl scale deployment autoscaler-demo --replicas=100
 Para revisar los registros del escalado: ``kubectl logs -f deployment/cluster-autoscaler -n kube-system``
 
 5\. Iniciando NGINX Ingress Controller:
->>>>>>> 8ababbf (corrigiendo errores)
 
 ```bash
-make addon-metrics
+make ingress
 ```
 
 <p align="center">
@@ -174,12 +170,17 @@ make ingress-controller
 * ### Instalando GuestBook
 
 ```bash
+<<<<<<< HEAD
 make deploy-guestbook
+=======
+make helm
+>>>>>>> 4ee1782 (corregir readme)
 ```
 
 Capturar DNS del balanceador asociado al **NGINX Ingress Controller**:
 
 ```bash
+<<<<<<< HEAD
 <<<<<<< HEAD
 kubectl get svc --namespace=ingress-nginx ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
 ```
@@ -197,12 +198,15 @@ kubectl get svc --namespace=ingress-nginx ingress-nginx -o jsonpath='{.status.lo
 | NODE_TYPE | Tipo de instancia de los nodos | list | `["r5a.large", "m5a.large"]` | no |
 =======
 kubectl prometheus
+=======
+make prometheus
+>>>>>>> 4ee1782 (corregir readme)
 ```
 
 8\. Instalando Grafana
 
 ```bash
-kubectl grafana
+make grafana
 ```
 
 Para revisar las metricas: ``http://grafana.punkerside.com``
@@ -210,19 +214,19 @@ Para revisar las metricas: ``http://grafana.punkerside.com``
 9\. Instalando Elasticsearch
 
 ```bash
-kubectl elasticsearch
+make elasticsearch
 ```
 
 10\. Instalando Fluent-Bit
 
 ```bash
-kubectl fluent-bit
+make fluent-bit
 ```
 
 11\. Instalando Kibana
 
 ```bash
-kubectl kibana
+make kibana
 ```
 
 Para revisar las registros: ``http://kibana.punkerside.com``
@@ -230,7 +234,7 @@ Para revisar las registros: ``http://kibana.punkerside.com``
 12\. Desplegando GuestBook
 
 ```bash
-kubectl guestbook-go
+make guestbook-go
 ```
 
 Para visitar el GuestBook: ``http://guestbook.punkerside.com``
