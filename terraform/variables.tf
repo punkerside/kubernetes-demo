@@ -3,3 +3,7 @@ variable "name" {
   type        = string
   default     = null
 }
+
+variable "eks_version" {
+  type = string
+}

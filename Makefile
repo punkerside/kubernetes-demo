@@ -1,25 +1,47 @@
-PROJECT     = falcon
-ENV         = k8s
-AWS_REGION  = us-east-1
-EKS_VERSION = 1.21
+SHELL = /bin/bash
+
+PROJECT            = falcon
+ENV                = k8s
+AWS_DEFAULT_REGION = us-east-1
+EKS_VERSION        = 1.25
 
 cluster:
 	@cd terraform/ && terraform init
-	@export AWS_DEFAULT_REGION="$(AWS_REGION)" && \
+	@export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" && \
 	cd terraform/ && terraform apply \
-	  -var 'name=$(PROJECT)-$(ENV)' \
-	-auto-approve
-	@aws eks update-kubeconfig --name $(PROJECT)-$(ENV) --region $(AWS_REGION)
+	  -var 'name=${PROJECT}-${ENV}' \
+	  -var 'eks_version=${EKS_VERSION}' \
+	 -auto-approve
+	@aws eks update-kubeconfig --name ${PROJECT}-${ENV} --region ${AWS_DEFAULT_REGION}
+
+destroy:
+	@export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" && \
+	cd terraform/ && terraform destroy \
+	  -var 'name=${PROJECT}-${ENV}' \
+	  -var 'eks_version=${EKS_VERSION}' \
+	 -auto-approve
 
 metrics-server:
-	@kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.5.0/components.yaml
+	@kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.6.2/components.yaml
+
+container-insights:
+	@./k8s/insights.sh ${PROJECT}-${ENV} ${AWS_DEFAULT_REGION}
 
 cluster-autoscaler:
 	@export EKS_NAME=$(PROJECT)-$(ENV) EKS_VERSION=$(shell curl -s https://api.github.com/repos/kubernetes/autoscaler/releases | grep tag_name | grep cluster-autoscaler | grep $(EKS_VERSION) | cut -d '"' -f4 | cut -d "-" -f3 | head -1) && envsubst < k8s/cluster-autoscaler-autodiscover.yaml | kubectl apply -f -
 	@kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false" --overwrite
 
-container-insights:
-	@sed 's/{{cluster_name}}/'$(PROJECT)-$(ENV)'/;s/{{region_name}}/'$(AWS_REGION)'/;s/{{http_server_toggle}}/"On"/;s/{{http_server_port}}/"2020"/;s/{{read_from_head}}/"Off"/;s/{{read_from_tail}}/"Off"/' k8s/cwagent.yaml | kubectl apply -f -
+
+
+
+
+
+
+
+
+
+
+
 
 xray:
 	@eksctl utils associate-iam-oidc-provider --cluster $(PROJECT)-$(ENV) --region $(AWS_REGION) --approve
@@ -45,12 +67,3 @@ guestbook:
 	@kubectl apply -f k8s/guestbook-service.json
 	@kubectl apply -f k8s/guestbook-ingress.yaml
 
-destroy:
-	@helm uninstall nginx-ingress
-	@kubectl delete service x-ray-sample-front-k8s
-	@aws cloudformation delete-stack --stack-name eksctl-$(PROJECT)-$(ENV)-addon-iamserviceaccount-default-xray-daemon --region $(AWS_REGION)
-	@cd terraform/ && terraform init
-	@export AWS_DEFAULT_REGION="$(AWS_REGION)" && \
-	cd terraform/ && terraform destroy \
-	  -var 'name=$(PROJECT)-$(ENV)' \
-	-auto-approve
